@@ -26,7 +26,7 @@ CREATE TABLE
 CREATE TABLE
     `carretillaanon` (
         `anoncod` varchar(128) NOT NULL,
-        `productId` bigint(18) NOT NULL,
+        `productId` int(11) NOT NULL,
         `crrctd` int(5) NOT NULL,
         `crrprc` decimal(12, 2) NOT NULL,
         `crrfching` datetime NOT NULL,
@@ -34,3 +34,24 @@ CREATE TABLE
         KEY `productId_idx` (`productId`),
         CONSTRAINT `carretillaanon_prd_key` FOREIGN KEY (`productId`) REFERENCES `products` (`productId`) ON DELETE NO ACTION ON UPDATE NO ACTION
     );
+
+      CREATE TABLE `sales` (
+    `saleId` int(11) NOT NULL AUTO_INCREMENT,
+    `productId` int(11) NOT NULL,
+    `salePrice` decimal(10,2) NOT NULL,
+    `saleStart` datetime NOT NULL,
+    `saleEnd` datetime NOT NULL,
+    PRIMARY KEY (`saleId`),
+    KEY `fk_sales_products_idx` (`productId`),
+    CONSTRAINT `fk_sales_products` FOREIGN KEY (`productId`) REFERENCES `products` (`productId`) ON DELETE CASCADE ON UPDATE CASCADE
+  ) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8mb4;
+  
+    CREATE TABLE `highlights` (
+    `highlightId` int(11) NOT NULL AUTO_INCREMENT,
+    `productId` int(11) NOT NULL,
+    `highlightStart` datetime NOT NULL,
+    `highlightEnd` datetime NOT NULL,
+    PRIMARY KEY (`highlightId`),
+    KEY `fk_highlights_products_idx` (`productId`),
+    CONSTRAINT `fk_highlights_products` FOREIGN KEY (`productId`) REFERENCES `products` (`productId`) ON DELETE CASCADE ON UPDATE CASCADE
+  ) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8mb4;
