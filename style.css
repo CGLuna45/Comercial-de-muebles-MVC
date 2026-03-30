@@ -1,0 +1,270 @@
+/* =========================================
+   VARIABLES DE MARCA (CÉDRIKA)
+   ========================================= */
+:root {
+    --arena: #F2E8DF;
+    --cafe-cedro: #5C4033;
+    --dorado-mate: #C5A059;
+    --blanco-crudo: #FAF9F6;
+    --gris-carbon: #333333;
+    --shadow: 0 10px 30px rgba(0,0,0,0.08);
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+html {
+    scroll-behavior: smooth;
+}
+
+body {
+    font-family: 'Raleway', sans-serif;
+    background-color: var(--arena);
+    color: var(--gris-carbon);
+    line-height: 1.6;
+}
+
+h1, h2, h3 {
+    font-family: 'Playfair Display', serif;
+    color: var(--cafe-cedro);
+}
+
+/* =========================================
+   HEADER Y NAVEGACIÓN
+   ========================================= */
+.topbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 20px 7%;
+    background-color: white;
+    position: sticky;
+    top: 0;
+    z-index: 1000;
+    box-shadow: 0 2px 15px rgba(0,0,0,0.05);
+}
+
+.logo-area {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+}
+
+.logo-imagen {
+    width: 45px;
+}
+
+.logo-nombre {
+    font-size: 1.5rem;
+    letter-spacing: 4px;
+    font-weight: 700;
+}
+
+/* EL MENÚ QUE SE VEÍA FEO (Links azules antiguos) */
+.menu {
+    display: flex;
+    align-items: center;
+    gap: 30px;
+}
+
+.menu a {
+    text-decoration: none; /* Quitamos el subrayado feo */
+    color: var(--cafe-cedro);
+    font-weight: 600;
+    font-size: 0.95rem;
+    transition: 0.3s;
+    padding: 10px 15px;
+    border-radius: 5px;
+}
+
+.menu a:hover {
+    background-color: var(--arena);
+    color: var(--dorado-mate);
+}
+
+/* El Icono del Carrito (cart-link) */
+.cart-link {
+    position: relative;
+}
+
+.badge {
+    background: #e74c3c;
+    color: white;
+    font-size: 0.7rem;
+    font-weight: bold;
+    padding: 2px 7px;
+    border-radius: 50%;
+    position: absolute;
+    top: -12px;
+    right: -15px;
+    border: 2px solid white;
+}
+
+/* =========================================
+   SECCION HERO (LA PARTE CENTRAL SIMPLE)
+   ========================================= */
+.hero-section {
+    height: 70vh;
+    background: linear-gradient(rgba(92, 64, 51, 0.4), rgba(92, 64, 51, 0.4)), 
+                url('img/hero-muebles.jpg') center/cover no-repeat;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+    color: white;
+}
+
+.hero-content {
+    max-width: 700px;
+    padding: 20px;
+}
+
+/* Titulo Profesional con Playfair Display */
+.hero-title {
+    font-family: 'Playfair Display', serif;
+    font-size: 4rem; /* Grande y elegante */
+    color: white;
+    margin-bottom: 15px; /* Espaciado con el subtítulo */
+    text-shadow: 2px 2px 5px rgba(0,0,0,0.3);
+}
+
+/* Subtítulo con Raleway */
+.hero-subtitle {
+    font-family: 'Raleway', sans-serif;
+    font-size: 1.4rem;
+    font-weight: 300;
+    color: var(--blanco-crudo);
+    margin-bottom: 35px; /* Espaciado con el botón */
+}
+
+/* EL BOTÓN QUE SE VEÍA GRIS Y ABURRIDO (btn-primary) */
+.btn-primary {
+    background-color: var(--dorado-mate);
+    color: white;
+    border: none;
+    padding: 15px 40px;
+    font-size: 1rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    border-radius: 30px; /* Redondito se ve más moderno */
+    cursor: pointer;
+    transition: all 0.3s ease;
+    text-decoration: none;
+    display: inline-block;
+}
+
+.btn-primary:hover {
+    background-color: var(--cafe-cedro);
+    transform: translateY(-3px);
+    box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+}
+
+/* =========================================
+   PRODUCTOS (CARDS DE LUJO)
+   ========================================= */
+.products-section {
+    padding: 80px 7%;
+}
+
+.section-title {
+    text-align: center;
+    margin-bottom: 50px;
+}
+
+.section-title h3 {
+    font-size: 2.5rem;
+}
+
+.products-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 40px;
+}
+
+.product-card {
+    background: white;
+    padding: 25px;
+    border-radius: 15px;
+    box-shadow: var(--shadow);
+    text-align: center;
+    transition: 0.3s;
+}
+
+.product-card:hover {
+    transform: translateY(-10px);
+}
+
+.product-card img {
+    width: 100%;
+    height: 250px;
+    object-fit: cover;
+    border-radius: 10px;
+}
+
+.category {
+    font-size: 0.8rem;
+    text-transform: uppercase;
+    color: var(--dorado-mate);
+    margin: 15px 0 5px;
+    font-weight: bold;
+}
+
+.product-card h4 {
+    margin: 5px 0 10px;
+    font-size: 1.2rem;
+}
+
+.price {
+    font-size: 1.4rem;
+    font-weight: bold;
+    color: var(--cafe-cedro);
+    margin-bottom: 20px;
+}
+
+/* BOTÓN AÑADIR (Añadir) */
+.btn-add {
+    background-color: var(--cafe-cedro);
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: 0.3s;
+    font-weight: 600;
+}
+
+.btn-add:hover {
+    background-color: var(--dorado-mate);
+}
+
+/* BOTÓN SECUNDARIO (Ver Catálogo Completo) */
+.btn-secondary {
+    border: 2px solid var(--cafe-cedro);
+    color: var(--cafe-cedro);
+    background: transparent;
+    padding: 15px 40px;
+    text-decoration: none;
+    font-weight: bold;
+    border-radius: 50px;
+    transition: 0.3s;
+    display: inline-block;
+}
+
+.btn-secondary:hover {
+    background: var(--cafe-cedro);
+    color: white;
+}
+
+/* =========================================
+   FOOTER (PIE DE PÁGINA)
+   ========================================= */
+.footer {
+    background: var(--cafe-cedro);
+    color: white;
+    text-align: center;
+    padding: 50px;
+}
