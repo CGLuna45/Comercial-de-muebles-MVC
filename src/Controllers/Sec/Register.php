@@ -30,12 +30,28 @@ class Register extends PublicController
             }
 
             if (!$this->hasErrors) {
-                try{
-                    if (\Dao\Security\Security::newUsuario($this->txtEmail, $this->txtPswd)) {
-                        \Utilities\Site::redirectToWithMsg("index.php?page=sec_login", "¡Usuario Registrado Satisfactoriamente!");
+                try {
+                    $existingUser = \Dao\Security\Security::getUsuarioByEmail($this->txtEmail);
+                    if ($existingUser) {
+                        $this->errorEmail = "El correo ya se encuentra registrado";
+                        $this->hasErrors = true;
+                    } else {
+                        if (\Dao\Security\Security::newUsuario($this->txtEmail, $this->txtPswd)) {
+                            \Utilities\Site::redirectToWithMsg("index.php?page=sec_login", "¡Usuario Registrado Satisfactoriamente!");
+                            return;
+                        }
+                        $this->generalError = "No fue posible registrar el usuario en este momento";
+                        $this->hasErrors = true;
                     }
-                } catch (Error $ex){
-                    die($ex);
+                } catch (\PDOException $ex) {
+                    // Manejamos el duplicate key en caso de race condition y otros errores SQL
+                    if ($ex->getCode() === '23000') {
+                        $this->errorEmail = "El correo ya se encuentra registrado";
+                    } else {
+                        $this->generalError = "Ocurrió un error en el servidor. Intenta nuevamente.";
+                    }
+                } catch (\Exception $ex) {
+                    $this->generalError = $ex->getMessage();
                 }
             }
         }

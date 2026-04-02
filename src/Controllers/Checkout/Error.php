@@ -2,8 +2,8 @@
 
 namespace Controllers\Checkout;
 
-use Controllers\PublicController;
-class Error extends PublicController
+use Controllers\PrivateController;
+class Error extends PrivateController
 {
     public function run(): void
     {

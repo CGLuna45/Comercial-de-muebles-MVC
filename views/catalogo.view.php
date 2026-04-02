@@ -5,6 +5,7 @@ if (session_status() === PHP_SESSION_NONE) {
 ?>
 <!DOCTYPE html>
 <html lang="es">
+
 <head>
     <meta charset="UTF-8">
     <title>Cédrika | Catálogo Completo</title>
@@ -16,7 +17,7 @@ if (session_status() === PHP_SESSION_NONE) {
             --arena: #F7F1EB;
             --blanco: #ffffff;
             --gris: #777;
-            --sombra: 0 8px 24px rgba(0,0,0,0.08);
+            --sombra: 0 8px 24px rgba(0, 0, 0, 0.08);
             --radio: 18px;
         }
 
@@ -33,7 +34,7 @@ if (session_status() === PHP_SESSION_NONE) {
         }
 
         .header {
-            background: rgba(255,255,255,0.95);
+            background: rgba(255, 255, 255, 0.95);
             backdrop-filter: blur(8px);
             padding: 18px 7%;
             display: flex;
@@ -93,8 +94,8 @@ if (session_status() === PHP_SESSION_NONE) {
         }
 
         .search-container {
-            background: linear-gradient(rgba(92,64,51,0.88), rgba(92,64,51,0.88)),
-                        url('/inicio-cedrika/img/sala.jpg') center/cover;
+            background: linear-gradient(rgba(92, 64, 51, 0.88), rgba(92, 64, 51, 0.88)),
+                url('/inicio-cedrika/img/sala.jpg') center/cover;
             padding: 70px 20px;
             text-align: center;
             color: white;
@@ -117,7 +118,8 @@ if (session_status() === PHP_SESSION_NONE) {
             gap: 12px;
         }
 
-        .search-box, .filter-select {
+        .search-box,
+        .filter-select {
             padding: 14px 18px;
             border-radius: 999px;
             border: none;
@@ -323,90 +325,106 @@ if (session_status() === PHP_SESSION_NONE) {
             }
         }
     </style>
+    <script src="https://kit.fontawesome.com/c1f13ce5c9.js" crossorigin="anonymous"></script>
 </head>
+
 <body>
 
-<header class="header">
-    <a href="index.php" class="logo-box">
-        <img src="/inicio-cedrika/img/logo-cedrika.png" alt="logo" class="logo-img">
-        <span class="logo-txt">CÉDRIKA</span>
-    </a>
+    <header class="header">
+        <a href="index.php" class="logo-box">
+            <img src="/MVC_Muebles/comercial-de-muebles-MVC/img/logo-cedrika.png" alt="logo" class="logo-img">
+            <span class="logo-txt">CÉDRIKA</span>
+        </a>
 
-    <nav class="nav-menu">
-        <a href="index.php">Inicio</a>
-        <a href="catalogo.php">Catálogo</a>
-        <a href="carrito.php">🛒 Carrito <span class="badge"><?php echo $cart_count; ?></span></a>
-    </nav>
-</header>
+        <nav class="nav-menu">
+            <a href="index.php">Inicio</a>
+            <a href="catalogo.php">Catálogo</a>
+            <a href="carrito.php">🛒 Carrito <span class="badge"><?php echo $cart_count; ?></span></a>
+            <?php if ($isLogged): ?>
+                <span style="color: var(--cedro); font-weight:700;">Hola, <?php echo htmlspecialchars($userName); ?></span>
+                <a href="index.php?page=Sec_Logout">Cerrar Sesión</a>
+            <?php else: ?>
+                <a href="index.php?page=Sec_Login"><i class="fas fa-sign-in-alt"></i>&nbsp;Iniciar Sesión</a>
+                <a href="index.php?page=Sec_Register"><i class="fas fa-sign-in-alt"></i>&nbsp;Crear Cuenta</a>
+            <?php endif; ?>
+        </nav>
+    </header>
 
-<section class="search-container">
-    <h2>Explora nuestra colección</h2>
-    <p>Encuentra muebles elegantes para transformar tus espacios.</p>
+    <section class="search-container">
+        <h2>Explora nuestra colección</h2>
+        <p>Encuentra muebles elegantes para transformar tus espacios.</p>
 
-    <form action="catalogo.php" method="GET" class="search-form">
-        <input type="text" name="q" class="search-box" placeholder="¿Qué mueble buscas?" value="<?php echo htmlspecialchars($search); ?>">
+        <form action="catalogo.php" method="GET" class="search-form">
+            <input type="text" name="q" class="search-box" placeholder="¿Qué mueble buscas?" value="<?php echo htmlspecialchars($search); ?>">
 
-        <select name="categoria" class="filter-select">
-            <option value="">Todas las categorías</option>
-            <option value="Sala" <?php echo ($categoria == 'Sala') ? 'selected' : ''; ?>>Sala</option>
-            <option value="Comedor" <?php echo ($categoria == 'Comedor') ? 'selected' : ''; ?>>Comedor</option>
-            <option value="Escritorio" <?php echo ($categoria == 'Escritorio') ? 'selected' : ''; ?>>Escritorio</option>
-        </select>
+            <select name="categoria" class="filter-select">
+                <option value="">Todas las categorías</option>
+                <option value="Sala" <?php echo ($categoria == 'Sala') ? 'selected' : ''; ?>>Sala</option>
+                <option value="Comedor" <?php echo ($categoria == 'Comedor') ? 'selected' : ''; ?>>Comedor</option>
+                <option value="Escritorio" <?php echo ($categoria == 'Escritorio') ? 'selected' : ''; ?>>Escritorio</option>
+            </select>
 
-        <button type="submit" class="btn-search">Buscar</button>
-    </form>
-</section>
+            <button type="submit" class="btn-search">Buscar</button>
+        </form>
+    </section>
 
-<div class="container">
-    <div class="section-title">
-        <h3>Catálogo General</h3>
-        <p>Diseños exclusivos para sala, comedor y escritorio.</p>
-    </div>
+    <div class="container">
+        <div class="section-title">
+            <h3>Catálogo General</h3>
+            <p>Diseños exclusivos para sala, comedor y escritorio.</p>
+        </div>
 
-    <?php if (isset($_GET['status']) && $_GET['status'] == 'success'): ?>
-        <div class="success-msg">Producto agregado al carrito correctamente.</div>
-    <?php endif; ?>
-
-    <div class="grid">
-        <?php if (!empty($productos)): ?>
-            <?php foreach($productos as $p): ?>
-                <div class="card">
-                    <img src="/inicio-cedrika/<?php echo htmlspecialchars($p['imagen']); ?>"
-                         alt="<?php echo htmlspecialchars($p['nombre']); ?>"
-                         onerror="this.src='/inicio-cedrika/img/no-image.jpg'">
-
-                    <div class="card-content">
-                        <span class="category"><?php echo htmlspecialchars($p['categoria']); ?></span>
-                        <h4><?php echo htmlspecialchars($p['nombre']); ?></h4>
-                        <p class="desc">
-                            Mueble elegante y funcional ideal para complementar tu espacio con estilo.
-                        </p>
-                        <span class="price">L <?php echo number_format($p['precio'], 2); ?></span>
-                        <p class="stock">Stock disponible: <?php echo $p['stock']; ?></p>
-
-                        <form method="POST" action="carrito.php" class="form-cart">
-                            <input type="hidden" name="accion" value="agregar">
-                            <input type="hidden" name="id" value="<?php echo $p['id']; ?>">
-
-                            <div class="qty-row">
-                                <span>Cantidad:</span>
-                                <input type="number" name="cantidad" value="1" min="1" max="<?php echo $p['stock']; ?>" class="qty-input" required>
-                            </div>
-
-                            <button type="submit" class="btn-add">Añadir al carrito</button>
-                        </form>
-                    </div>
-                </div>
-            <?php endforeach; ?>
-        <?php else: ?>
-            <p class="empty-msg">No se encontraron productos para tu búsqueda.</p>
+        <?php if (isset($_GET['status']) && $_GET['status'] == 'success'): ?>
+            <div class="success-msg">Producto agregado al carrito correctamente.</div>
         <?php endif; ?>
-    </div>
-</div>
 
-<footer>
-    <p>© 2026 CÉDRIKA | La Ceiba, Honduras</p>
-</footer>
+        <div class="grid">
+            <?php if (!empty($productos)): ?>
+                <?php foreach ($productos as $p): ?>
+                    <div class="card">
+                        <?php
+                        $productImage = trim($p['imagen']);
+                        if (!preg_match('/^https?:\/\//i', $productImage)) {
+                            $productImage = '/MVC_Muebles/comercial-de-muebles-MVC/' . ltrim($productImage, '/');
+                        }
+                        ?>
+                        <img src="<?php echo htmlspecialchars($productImage); ?>"
+                            alt="<?php echo htmlspecialchars($p['nombre']); ?>"
+                            onerror="this.src='https://placehold.co/290x250?text=No+existe+la+imagen&bg=ddd&txtclr=999'">
+
+                        <div class="card-content">
+                            <span class="category"><?php echo htmlspecialchars($p['categoria']); ?></span>
+                            <h4><?php echo htmlspecialchars($p['nombre']); ?></h4>
+                            <p class="desc">
+                                Mueble elegante y funcional ideal para complementar tu espacio con estilo.
+                            </p>
+                            <span class="price">L <?php echo number_format($p['precio'], 2); ?></span>
+                            <p class="stock">Stock disponible: <?php echo $p['stock']; ?></p>
+
+                            <form method="POST" action="carrito.php" class="form-cart">
+                                <input type="hidden" name="accion" value="agregar">
+                                <input type="hidden" name="id" value="<?php echo $p['id']; ?>">
+
+                                <div class="qty-row">
+                                    <span>Cantidad:</span>
+                                    <input type="number" name="cantidad" value="1" min="1" max="<?php echo $p['stock']; ?>" class="qty-input" required>
+                                </div>
+
+                                <button type="submit" class="btn-add">Añadir al carrito</button>
+                            </form>
+                        </div>
+                    </div>
+                <?php endforeach; ?>
+            <?php else: ?>
+                <p class="empty-msg">No se encontraron productos para tu búsqueda.</p>
+            <?php endif; ?>
+        </div>
+    </div>
+
+    <footer>
+        <p>© 2026 CÉDRIKA | La Ceiba, Honduras</p>
+    </footer>
 
 </body>
+
 </html>

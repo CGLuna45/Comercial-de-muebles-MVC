@@ -12,17 +12,22 @@ class Login extends \Controllers\PublicController
     public function run() :void
     {
         if ($this->isPostBack()) {
-            $this->txtEmail = $_POST["txtEmail"];
-            $this->txtPswd = $_POST["txtPswd"];
+            $this->txtEmail = trim($_POST["txtEmail"] ?? "");
+            $this->txtPswd = trim($_POST["txtPswd"] ?? "");
 
-            if (!\Utilities\Validators::IsValidEmail($this->txtEmail)) {
+            if (\Utilities\Validators::IsEmpty($this->txtEmail)) {
+                $this->errorEmail = "¡Debe ingresar un correo electrónico!";
+                $this->hasError = true;
+            } elseif (!\Utilities\Validators::IsValidEmail($this->txtEmail)) {
                 $this->errorEmail = "¡Correo no tiene el formato adecuado!";
                 $this->hasError = true;
             }
+
             if (\Utilities\Validators::IsEmpty($this->txtPswd)) {
                 $this->errorPswd = "¡Debe ingresar una contraseña!";
                 $this->hasError = true;
             }
+
             if (! $this->hasError) {
                 if ($dbUser = \Dao\Security\Security::getUsuarioByEmail($this->txtEmail)) {
                     if ($dbUser["userest"] != \Dao\Security\Estados::ACTIVO) {

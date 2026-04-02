@@ -1,9 +1,9 @@
 <?php
-$db = new mysqli("localhost", "root", "", "comercial_muebles");
+// Forzar TCP (127.0.0.1) en lugar de socket local para evitar "No such file or directory"
+$db = new mysqli("127.0.0.1", "root", "", "nwdb", 3306);
 
 if ($db->connect_error) {
     die("Error de conexión: " . $db->connect_error);
 }
 
 $db->set_charset("utf8");
-?>

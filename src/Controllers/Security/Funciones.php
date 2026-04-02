@@ -2,12 +2,12 @@
 
 namespace Controllers\Security;
 
-use Controllers\PublicController;
+use Controllers\PrivateController;
 use Views\Renderer;
 use Dao\Security\Funciones as DaoFunciones;
 use Utilities\Site;
 
-class Funciones extends PublicController
+class Funciones extends PrivateController
 {
     private $viewData = [];
 

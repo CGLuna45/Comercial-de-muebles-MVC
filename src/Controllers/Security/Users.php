@@ -2,13 +2,13 @@
 
 namespace Controllers\Security;
 
-use Controllers\PublicController;
+use Controllers\PrivateController;
 use Views\Renderer;
 use Dao\Security\Users as DaoUsers;
 use Utilities\Context;
 use Utilities\Paging;
 
-class Users extends PublicController
+class Users extends PrivateController
 {
     private $viewData = [];
     private $partialName = "";

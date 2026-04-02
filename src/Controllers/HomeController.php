@@ -6,16 +6,11 @@ use \Dao\Products\Products as ProductsDao;
 use \Views\Renderer as Renderer;
 use \Utilities\Site as Site;
 
-class HomeController extends PublicController
+class HomeController extends PrivateController
 {
     public function run(): void
-
     {
-        Site::addLink("public/css/products.css");
-        $viewData = [];
-        $viewData["productsOnSale"] = ProductsDao::getDailyDeals();
-        $viewData["productsHighlighted"] = ProductsDao::getFeaturedProducts();
-        $viewData["productsNew"] = ProductsDao::getNewProducts();
-        Renderer::render("home", $viewData);
+        // Redirige al index estático (UI de catálogo) para mantener el diseño principal consistente
+        \Utilities\Site::redirectTo("index.php");
     }
 }

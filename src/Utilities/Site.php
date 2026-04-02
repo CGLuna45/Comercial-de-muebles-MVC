@@ -19,6 +19,11 @@ class Site
         }
         if (isset($_GET["page"])) {
             $pageRequest = str_replace(array("_", "-", "."), "\\", $_GET["page"]);
+            $parts = explode("\\", $pageRequest);
+            $parts = array_map(function ($part) {
+                return ucfirst(strtolower(trim($part)));
+            }, $parts);
+            $pageRequest = implode("\\", $parts);
         }
         Context::setArrayToContext($_GET);
         Context::setContext("request_uri", $_SERVER["REQUEST_URI"]);

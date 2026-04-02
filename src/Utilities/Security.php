@@ -15,6 +15,8 @@ class Security {
     public static function logout()
     {
         unset($_SESSION["login"]);
+        unset($_SESSION["userName"]);
+        unset($_SESSION["userEmail"]);
     }
     public static function login($userId, $userName, $userEmail)
     {
@@ -24,6 +26,8 @@ class Security {
             "userName" => $userName,
             "userEmail" => $userEmail
         );
+        $_SESSION["userName"] = $userName;
+        $_SESSION["userEmail"] = $userEmail;
     }
     public static function isLogged():bool
     {

@@ -2,6 +2,11 @@
 session_start();
 require_once 'db.php';
 
+// Variables de sesión para mostrar en HTML
+$isLogged = isset($_SESSION['login']) && $_SESSION['login']['isLogged'];
+$userName = $_SESSION['userName'] ?? '';
+$userEmail = $_SESSION['userEmail'] ?? '';
+
 // Crear carrito si no existe
 if (!isset($_SESSION['cart'])) {
     $_SESSION['cart'] = [];
@@ -262,18 +267,26 @@ foreach ($_SESSION['cart'] as $item) {
             }
         }
     </style>
+    <script src="https://kit.fontawesome.com/c1f13ce5c9.js" crossorigin="anonymous"></script>
 </head>
 <body>
 
 <header class="header">
     <a href="index.php" class="logo-box">
-        <img src="img/logo-cedrika.png" alt="logo" class="logo-img">
+        <img src="/MVC_Muebles/comercial-de-muebles-MVC/img/logo-cedrika.png" alt="logo" class="logo-img">
         <span class="logo-txt">CÉDRIKA</span>
     </a>
     <nav class="nav-menu">
         <a href="index.php">Inicio</a>
         <a href="catalogo.php">Catálogo</a>
         <a href="carrito.php">🛒 Carrito <span class="badge"><?php echo $cart_count; ?></span></a>
+        <?php if ($isLogged): ?>
+            <span style="color: var(--cedro); font-weight:700;">Hola, <?php echo htmlspecialchars($userName); ?></span>
+            <a href="index.php?page=Sec_Logout">Cerrar Sesión</a>
+        <?php else: ?>
+            <a href="index.php?page=Sec_Login"><i class="fas fa-sign-in-alt"></i>&nbsp;Iniciar Sesión</a>
+            <a href="index.php?page=Sec_Register"><i class="fas fa-sign-in-alt"></i>&nbsp;Crear Cuenta</a>
+        <?php endif; ?>
     </nav>
 </header>
 

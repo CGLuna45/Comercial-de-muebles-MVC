@@ -42,6 +42,11 @@ class ProductoController {
             }
         }
 
+        // Variables de sesión para mostrar en HTML
+        $isLogged = isset($_SESSION['login']) && $_SESSION['login']['isLogged'];
+        $userName = $_SESSION['userName'] ?? '';
+        $userEmail = $_SESSION['userEmail'] ?? '';
+
         include 'views/catalogo.view.php';
     }
 }

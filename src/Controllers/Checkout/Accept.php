@@ -2,9 +2,9 @@
 
 namespace Controllers\Checkout;
 
-use Controllers\PublicController;
+use Controllers\PrivateController;
 
-class Accept extends PublicController
+class Accept extends PrivateController
 {
     public function run(): void
     {

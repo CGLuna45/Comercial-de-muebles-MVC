@@ -1,30 +1,31 @@
-<section class="fullCenter">
-  <form class="grid" method="post" action="index.php?page=sec_register">
-    <section class="depth-1 row col-12 col-m-8 offset-m-2 col-xl-6 offset-xl-3">
-      <h1 class="col-12">Crea tu cuenta</h1>
-    </section>
-    <section class="depth-1 py-5 row col-12 col-m-8 offset-m-2 col-xl-6 offset-xl-3">
-      <div class="row">
-        <label class="col-12 col-m-4 flex align-center" for="txtEmail">Correo Electrónico</label>
-        <div class="col-12 col-m-8">
-          <input class="width-full" type="email" id="txtEmail" name="txtEmail" value="{{txtEmail}}" />
-        </div>
-        {{if errorEmail}}
-        <div class="error col-12 py-2 col-m-8 offset-m-4">{{errorEmail}}</div>
-        {{endif errorEmail}}
-      </div>
-      <div class="row">
-        <label class="col-12 col-m-4 flex align-center" for="txtPswd">Contraseña</label>
-        <div class="col-12 col-m-8">
-          <input class="width-full" type="password" id="txtPswd" name="txtPswd" value="{{txtPswd}}" />
-        </div>
-        {{if errorPswd}}
-        <div class="error col-12 py-2 col-m-8 offset-m-4">{{errorPswd}}</div>
-        {{endif errorPswd}}
-      </div>
-      <div class="row right flex-end px-4">
-        <button class="primary" id="btnSignin" type="submit">Crear Cuenta</button>
-      </div>
-    </section>
+<section class="fullCenter login-wrapper">
+  <form class="login-card" method="post" action="index.php?page=Sec_Register" novalidate>
+    <h1 class="section-title">Crea tu cuenta</h1>
+
+    <div class="form-group">
+      <label for="txtEmail">Correo electrónico</label>
+      <input class="input" type="email" id="txtEmail" name="txtEmail" value="{{txtEmail}}" required autocomplete="email" placeholder="usuario@dominio.com" />
+      {{if errorEmail}}
+        <div class="error">{{errorEmail}}</div>
+      {{endif errorEmail}}
+    </div>
+
+    <div class="form-group">
+      <label for="txtPswd">Contraseña</label>
+      <input class="input" type="password" id="txtPswd" name="txtPswd" value="{{txtPswd}}" required autocomplete="new-password" placeholder="Mínimo 8 caracteres" />
+      {{if errorPswd}}
+        <div class="error">{{errorPswd}}</div>
+      {{endif errorPswd}}
+    </div>
+
+    {{if generalError}}
+      <div class="error general-error">{{generalError}}</div>
+    {{endif generalError}}
+
+    <div class="actions">
+      <button class="btn-primary" id="btnSignin" type="submit">Crear Cuenta</button>
+    </div>
+
+    <p class="note">¿Ya tienes cuenta? <a href="index.php?page=sec_login">Inicia sesión</a></p>
   </form>
 </section>

@@ -1,15 +1,53 @@
 <?php
 session_start();
 
+// Router MVC: si viene page=..., ejecuta el controlador
+if (isset($_GET['page']) && trim($_GET['page']) !== '') {
+    require __DIR__ . '/vendor/autoload.php';
+
+    try {
+        \Utilities\Site::configure();
+        $pageRequest = \Utilities\Site::getPageRequest();
+        $instance = new $pageRequest();
+        $instance->run();
+        die();
+    } catch (\Controllers\PrivateNoAuthException $ex) {
+        $instance = new \Controllers\NoAuth();
+        $instance->run();
+        die();
+    } catch (\Controllers\PrivateNoLoggedException $ex) {
+        $redirTo = urlencode(\Utilities\Context::getContextByKey('request_uri'));
+        \Utilities\Site::redirectTo('index.php?page=Sec_Login&redirto=' . $redirTo);
+        die();
+    } catch (\Exception $ex) {
+        \Utilities\Site::logError($ex, 500);
+        $instance = new \Controllers\Error();
+        $instance->run();
+        die();
+    } catch (\Error $ex) {
+        \Utilities\Site::logError($ex, 500);
+        $instance = new \Controllers\Error();
+        $instance->run();
+        die();
+    }
+}
+
+// Si no hay page=, mostrar portada estática
 $cart_count = 0;
 if (isset($_SESSION['cart'])) {
     foreach ($_SESSION['cart'] as $item) {
         $cart_count += $item['cantidad'];
     }
 }
+
+// Variables de sesión para mostrar en HTML
+$isLogged = isset($_SESSION['login']) && $_SESSION['login']['isLogged'];
+$userName = $_SESSION['userName'] ?? '';
+$userEmail = $_SESSION['userEmail'] ?? '';
 ?>
 <!DOCTYPE html>
 <html lang="es">
+
 <head>
     <meta charset="UTF-8">
     <title>Cédrika | Inicio</title>
@@ -21,7 +59,7 @@ if (isset($_SESSION['cart'])) {
             --arena: #F7F1EB;
             --blanco: #ffffff;
             --gris: #777;
-            --sombra: 0 8px 24px rgba(0,0,0,0.08);
+            --sombra: 0 8px 24px rgba(0, 0, 0, 0.08);
             --radio: 18px;
         }
 
@@ -38,7 +76,7 @@ if (isset($_SESSION['cart'])) {
         }
 
         .header {
-            background: rgba(255,255,255,0.95);
+            background: rgba(255, 255, 255, 0.95);
             backdrop-filter: blur(8px);
             padding: 18px 7%;
             display: flex;
@@ -99,8 +137,8 @@ if (isset($_SESSION['cart'])) {
 
         .hero {
             min-height: 88vh;
-            background: linear-gradient(rgba(92,64,51,0.65), rgba(92,64,51,0.65)),
-                        url('img/sala.jpg') center/cover;
+            background: linear-gradient(rgba(92, 64, 51, 0.65), rgba(92, 64, 51, 0.65)),
+                url('img/sala.jpg') center/cover;
             display: flex;
             align-items: center;
             justify-content: center;
@@ -247,115 +285,127 @@ if (isset($_SESSION['cart'])) {
         }
     </style>
 </head>
+
 <body>
 
-<header class="header">
-    <a href="index.php" class="logo-box">
-        <img src="img/logo-cedrika.png" alt="logo" class="logo-img">
-        <span class="logo-txt">CÉDRIKA</span>
-    </a>
+    <header class="header">
+        <a href="index.php" class="logo-box">
+            <img src="/MVC_Muebles/comercial-de-muebles-MVC/img/logo-cedrika.png" alt="logo" class="logo-img">
+            <span class="logo-txt">CÉDRIKA</span>
+        </a>
 
-    <nav class="nav-menu">
-        <a href="index.php">Inicio</a>
-        <a href="catalogo.php">Catálogo</a>
-        <a href="carrito.php">🛒 Carrito <span class="badge"><?php echo $cart_count; ?></span></a>
-    </nav>
-</header>
+        <nav class="nav-menu">
+            <a href="index.php">Inicio</a>
+            <a href="catalogo.php">Catálogo</a>
+            <a href="carrito.php">🛒 Carrito <span class="badge"><?php echo $cart_count; ?></span></a>
+            <?php if ($isLogged): ?>
+                <span style="color: var(--cedro); font-weight:700;">Hola, <?php echo htmlspecialchars($userName); ?></span>
+                <a href="index.php?page=Sec_Logout">Cerrar Sesión</a>
+            <?php else: ?>
+                <a href="index.php?page=Sec_Login"><i class="fas fa-sign-in-alt"></i>&nbsp;Iniciar Sesión</a>
+                <a href="index.php?page=Sec_Register"><i class="fas fa-sign-in-alt"></i>&nbsp;Crear Cuenta</a>
+            <?php endif; ?>
+        </nav>
+    </header>
 
-<section class="hero">
-    <div class="hero-content">
-        <h1>Elegancia artesanal para cada rincón</h1>
+    <section class="hero">
+        <div class="hero-content">
+            <h1>Elegancia artesanal para cada rincón</h1>
+            <p>
+                Descubre nuestra colección exclusiva de muebles para sala, comedor y escritorio.
+                Diseños modernos, acabados finos y esencia catracha.
+            </p>
+            <a href="catalogo.php" class="btn-main">Explorar Catálogo</a>
+            <?php if (!$isLogged): ?>
+                <a href="index.php?page=Sec_Login" class="btn-main" style="margin-left: 12px; background-color: var(--cedro);">Ingresar</a>
+            <?php endif; ?>
+        </div>
+    </section>
+
+    <section class="section">
+        <h2>Nuestras Categorías</h2>
+        <p>Encuentra piezas ideales para transformar tu hogar con estilo, comodidad y personalidad.</p>
+
+        <div class="cards">
+            <div class="card">
+                <h3>Sala</h3>
+                <p>Sofás, mesas de centro, sillones y muebles decorativos para tu sala.</p>
+            </div>
+            <div class="card">
+                <h3>Comedor</h3>
+                <p>Mesas, sillas, vitrinas y bufeteras para compartir en familia.</p>
+            </div>
+            <div class="card">
+                <h3>Escritorio</h3>
+                <p>Escritorios, sillas ejecutivas, libreros y muebles funcionales para trabajar.</p>
+            </div>
+        </div>
+    </section>
+
+    <section class="section">
+        <h2>Sobre Nuestra Tienda</h2>
         <p>
-            Descubre nuestra colección exclusiva de muebles para sala, comedor y escritorio.
-            Diseños modernos, acabados finos y esencia catracha.
+            En <strong>CÉDRIKA</strong> nos especializamos en muebles elegantes, funcionales y modernos
+            para transformar cada espacio de tu hogar u oficina. Nos enfocamos en ofrecer calidad,
+            diseño y confort en cada pieza.
         </p>
-        <a href="catalogo.php" class="btn-main">Explorar Catálogo</a>
-    </div>
-</section>
 
-<section class="section">
-    <h2>Nuestras Categorías</h2>
-    <p>Encuentra piezas ideales para transformar tu hogar con estilo, comodidad y personalidad.</p>
-
-    <div class="cards">
-        <div class="card">
-            <h3>Sala</h3>
-            <p>Sofás, mesas de centro, sillones y muebles decorativos para tu sala.</p>
+        <div class="cards">
+            <div class="card">
+                <h3>Calidad Garantizada</h3>
+                <p>Trabajamos con materiales duraderos y acabados finos para brindar muebles resistentes y atractivos.</p>
+            </div>
+            <div class="card">
+                <h3>Diseño Exclusivo</h3>
+                <p>Nuestros estilos están pensados para adaptarse a hogares modernos, elegantes y acogedores.</p>
+            </div>
+            <div class="card">
+                <h3>Atención Personalizada</h3>
+                <p>Buscamos ayudarte a encontrar el mueble ideal según tus gustos, espacio y necesidades.</p>
+            </div>
         </div>
-        <div class="card">
-            <h3>Comedor</h3>
-            <p>Mesas, sillas, vitrinas y bufeteras para compartir en familia.</p>
+    </section>
+
+    <section class="section">
+        <h2>Inspiración para tu Espacio</h2>
+        <p>Algunas ilustraciones de ambientes que reflejan el estilo que ofrecemos en Cédrika.</p>
+
+        <div class="gallery">
+            <img src="img/ilustracion-sala.jpg" alt="Sala elegante">
+            <img src="img/ilustracion-comedor.jpg" alt="Comedor moderno">
+            <img src="img/ilustracion-escritorio.jpg" alt="Escritorio elegante">
         </div>
-        <div class="card">
-            <h3>Escritorio</h3>
-            <p>Escritorios, sillas ejecutivas, libreros y muebles funcionales para trabajar.</p>
+    </section>
+
+    <section class="section">
+        <h2>Reseñas de Clientes</h2>
+        <p>La experiencia de nuestros clientes es parte esencial de nuestra identidad.</p>
+
+        <div class="reviews">
+            <div class="review-card">
+                <h4>María Fernández</h4>
+                <div class="stars">★★★★★</div>
+                <p>“Compré un sofá para mi sala y superó mis expectativas. Muy elegante y cómodo.”</p>
+            </div>
+
+            <div class="review-card">
+                <h4>Carlos Mejía</h4>
+                <div class="stars">★★★★★</div>
+                <p>“Excelente atención y muebles de muy buena calidad. El comedor quedó hermoso.”</p>
+            </div>
+
+            <div class="review-card">
+                <h4>Ana López</h4>
+                <div class="stars">★★★★★</div>
+                <p>“El escritorio que compré combina perfecto con mi espacio de trabajo. Muy recomendado.”</p>
+            </div>
         </div>
-    </div>
-</section>
+    </section>
 
-<section class="section">
-    <h2>Sobre Nuestra Tienda</h2>
-    <p>
-        En <strong>CÉDRIKA</strong> nos especializamos en muebles elegantes, funcionales y modernos
-        para transformar cada espacio de tu hogar u oficina. Nos enfocamos en ofrecer calidad,
-        diseño y confort en cada pieza.
-    </p>
-
-    <div class="cards">
-        <div class="card">
-            <h3>Calidad Garantizada</h3>
-            <p>Trabajamos con materiales duraderos y acabados finos para brindar muebles resistentes y atractivos.</p>
-        </div>
-        <div class="card">
-            <h3>Diseño Exclusivo</h3>
-            <p>Nuestros estilos están pensados para adaptarse a hogares modernos, elegantes y acogedores.</p>
-        </div>
-        <div class="card">
-            <h3>Atención Personalizada</h3>
-            <p>Buscamos ayudarte a encontrar el mueble ideal según tus gustos, espacio y necesidades.</p>
-        </div>
-    </div>
-</section>
-
-<section class="section">
-    <h2>Inspiración para tu Espacio</h2>
-    <p>Algunas ilustraciones de ambientes que reflejan el estilo que ofrecemos en Cédrika.</p>
-
-    <div class="gallery">
-        <img src="img/ilustracion-sala.jpg" alt="Sala elegante">
-        <img src="img/ilustracion-comedor.jpg" alt="Comedor moderno">
-        <img src="img/ilustracion-escritorio.jpg" alt="Escritorio elegante">
-    </div>
-</section>
-
-<section class="section">
-    <h2>Reseñas de Clientes</h2>
-    <p>La experiencia de nuestros clientes es parte esencial de nuestra identidad.</p>
-
-    <div class="reviews">
-        <div class="review-card">
-            <h4>María Fernández</h4>
-            <div class="stars">★★★★★</div>
-            <p>“Compré un sofá para mi sala y superó mis expectativas. Muy elegante y cómodo.”</p>
-        </div>
-
-        <div class="review-card">
-            <h4>Carlos Mejía</h4>
-            <div class="stars">★★★★★</div>
-            <p>“Excelente atención y muebles de muy buena calidad. El comedor quedó hermoso.”</p>
-        </div>
-
-        <div class="review-card">
-            <h4>Ana López</h4>
-            <div class="stars">★★★★★</div>
-            <p>“El escritorio que compré combina perfecto con mi espacio de trabajo. Muy recomendado.”</p>
-        </div>
-    </div>
-</section>
-
-<footer>
-    <p>© 2026 CÉDRIKA | La Ceiba, Honduras</p>
-</footer>
+    <footer>
+        <p>© 2026 CÉDRIKA | La Ceiba, Honduras</p>
+    </footer>
 
 </body>
+
 </html>

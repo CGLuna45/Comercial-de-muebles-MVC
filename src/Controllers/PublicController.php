@@ -30,7 +30,14 @@ abstract class PublicController implements IController
     {
         $this->name = get_class($this);
         \Utilities\Nav::setPublicNavContext();
-        if (\Utilities\Security::isLogged()){
+        
+        // Pasar variables de sesión de usuario al contexto para templates
+        if (\Utilities\Security::isLogged()) {
+            $userSession = \Utilities\Security::getUser();
+            \Utilities\Context::setContext("login", $userSession);
+            \Utilities\Context::setContext("userName", $userSession["userName"]);
+            \Utilities\Context::setContext("userEmail", $userSession["userEmail"]);
+            
             $layoutFile = \Utilities\Context::getContextByKey("PRIVATE_LAYOUT");
             if ($layoutFile !== "") {
                 \Utilities\Context::setContext(
