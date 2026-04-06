@@ -334,7 +334,7 @@ foreach ($_SESSION['cart'] as $item) {
         <div class="actions">
             <a href="catalogo.php" class="btn-gold">Seguir Comprando</a>
             <a href="carrito.php?action=empty" class="btn-empty">Vaciar Carrito</a>
-            <button class="btn-gold" onclick="alert('Pedido recibido. Nos contactaremos pronto.')">Finalizar Compra</button>
+            <a href="checkout.php" class="btn-gold">Finalizar Compra</a>
         </div>
     </div>
 
