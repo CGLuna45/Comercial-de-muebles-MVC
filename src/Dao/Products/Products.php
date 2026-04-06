@@ -4,7 +4,7 @@ namespace Dao\Products;
 
 use Dao\Table;
 
-class  Products extends Table
+class Products extends Table
 {
     public static function getProducts(
         string $partialName = "",
@@ -47,6 +47,9 @@ class  Products extends Table
         $pagesCount = ceil($numeroDeRegistros / $itemsPerPage);
         if ($page > $pagesCount - 1) {
             $page = $pagesCount - 1;
+        }
+        if ($page < 0) {
+            $page = 0;
         }
         $sqlstr .= " LIMIT " . $page * $itemsPerPage . ", " . $itemsPerPage;
 

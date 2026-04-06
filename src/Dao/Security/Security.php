@@ -73,7 +73,7 @@ class Security extends \Dao\Table
         $newUser["useractcod"] = hash("sha256", $email.time());
         $newUser["usertipo"] = UsuarioTipo::PUBLICO;
 
-        $sqlIns = "INSERT INTO `usuario` (`useremail`, `username`, `userpswd`,
+        $sqlIns = "INSERT INTO `usuarios` (`useremail`, `username`, `userpswd`,
             `userfching`, `userpswdest`, `userpswdexp`, `userest`, `useractcod`,
             `userpswdchg`, `usertipo`)
             VALUES
@@ -87,7 +87,7 @@ class Security extends \Dao\Table
 
     static public function getUsuarioByEmail($email)
     {
-        $sqlstr = "SELECT * from `usuario` where `useremail` = :useremail ;";
+        $sqlstr = "SELECT * from `usuarios` where `useremail` = :useremail ;";
         $params = array("useremail"=>$email);
 
         return self::obtenerUnRegistro($sqlstr, $params);
