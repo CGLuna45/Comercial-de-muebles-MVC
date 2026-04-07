@@ -13,11 +13,6 @@
   ],
   "private": [
     {
-      "id": "Menu_PaymentCheckout",
-      "nav_url": "index.php?page=Checkout_Checkout",
-      "nav_label": "Carretilla de Compra"
-    },
-    {
       "id": "Menu_Products",
       "nav_url": "index.php?page=Products_Products",
       "nav_label": "<i class='fas fa-box'></i>&nbsp;Productos"
@@ -26,11 +21,6 @@
       "id": "Menu_Users",
       "nav_url": "index.php?page=Security_Users",
       "nav_label": "<i class='fas fa-users'></i>&nbsp;Usuarios"
-    },
-    {
-      "id": "Menu_Roles",
-      "nav_url": "index.php?page=Security_Roles",
-      "nav_label": "<i class='fas fa-shield-alt'></i>&nbsp;Roles"
     }
   ]
 }

@@ -8,14 +8,14 @@ class Users extends Table
 {
     public static function getAllUsers(): array
     {
-        $sql = "SELECT * FROM usuario ORDER BY username ASC";
+        $sql = "SELECT * FROM usuarios ORDER BY username ASC";
         return self::obtenerRegistros($sql, []);
     }
 
     public static function getUserById(int $usercod): array|false
     {
-        $sql = "SELECT * FROM usuario WHERE usercod = :usercod";
-        $params = ["usercod" => $usercod]; // Sin :
+        $sql = "SELECT * FROM usuarios WHERE usercod = :usercod";
+        $params = ["usercod" => $usercod];
         return self::obtenerUnRegistro($sql, $params);
     }
 
@@ -31,10 +31,12 @@ class Users extends Table
         string $userpswdchg,
         string $usertipo
     ): int {
-        $sql = "INSERT INTO usuario 
+
+        $sql = "INSERT INTO usuarios 
                 (username, useremail, userpswd, userfching, userpswdest, userpswdexp, userest, useractcod, userpswdchg, usertipo)
                 VALUES
                 (:username, :useremail, :userpswd, :userfching, :userpswdest, :userpswdexp, :userest, :useractcod, :userpswdchg, :usertipo)";
+
         $params = [
             "username" => $username,
             "useremail" => $useremail,
@@ -47,7 +49,10 @@ class Users extends Table
             "userpswdchg" => $userpswdchg,
             "usertipo" => $usertipo
         ];
-        return self::executeNonQuery($sql, $params);
+
+        self::executeNonQuery($sql, $params);
+
+        return self::getLastInsertId();
     }
 
     public static function updateUser(
@@ -63,44 +68,37 @@ class Users extends Table
         string $userpswdchg,
         string $usertipo
     ): int {
-        $sql = "UPDATE usuario SET
-                username = :username,
-                useremail = :useremail,
-                userpswd = :userpswd,
-                userfching = :userfching,
-                userpswdest = :userpswdest,
-                userpswdexp = :userpswdexp,
-                userest = :userest,
-                useractcod = :useractcod,
-                userpswdchg = :userpswdchg,
-                usertipo = :usertipo
-                WHERE usercod = :usercod";
+
+        $sql = "UPDATE usuarios SET
+        username = :username,
+        useremail = :useremail,
+        userfching = :userfching,
+        userest = :userest,
+        usertipo = :usertipo
+        WHERE usercod = :usercod";
+
         $params = [
             "usercod" => $usercod,
             "username" => $username,
             "useremail" => $useremail,
-            "userpswd" => $userpswd,
             "userfching" => $userfching,
-            "userpswdest" => $userpswdest,
-            "userpswdexp" => $userpswdexp,
             "userest" => $userest,
-            "useractcod" => $useractcod,
-            "userpswdchg" => $userpswdchg,
             "usertipo" => $usertipo
         ];
+
         return self::executeNonQuery($sql, $params);
     }
 
     public static function deleteUser(int $usercod): int
     {
-        $sql = "DELETE FROM usuario WHERE usercod = :usercod";
+        $sql = "DELETE FROM usuarios WHERE usercod = :usercod";
         $params = ["usercod" => $usercod];
         return self::executeNonQuery($sql, $params);
     }
 
-    public static function searchUsers(string $partialName = "", string $status = ""): array
+    public static function searchUsers(string $partialName = "", string $status = "", string $usertipo = ""): array
     {
-        $sql = "SELECT * FROM usuario WHERE 1=1 ";
+        $sql = "SELECT * FROM usuarios WHERE 1=1 ";
         $params = [];
 
         if ($partialName !== "") {
@@ -113,7 +111,13 @@ class Users extends Table
             $params["status"] = $status;
         }
 
+        if (in_array($usertipo, ["NOR", "ADM", "CON"])) {
+            $sql .= " AND usertipo = :usertipo";
+            $params["usertipo"] = $usertipo;
+        }
+
         $sql .= " ORDER BY username ASC";
+
         return self::obtenerRegistros($sql, $params);
     }
 }
