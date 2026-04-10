@@ -9,8 +9,9 @@ use \Utilities\Site as Site;
 class HomeController extends PrivateController
 {
     public function run(): void
-    {
-        // Redirige al index estático (UI de catálogo) para mantener el diseño principal consistente
-        \Utilities\Site::redirectTo("index.php");
-    }
+{
+    $dataView = [];
+    $dataView['userName'] = \Utilities\Security::getUser()['userName'] ?? 'Admin';
+    \Views\Renderer::render("dashboard", $dataView);
+}
 }

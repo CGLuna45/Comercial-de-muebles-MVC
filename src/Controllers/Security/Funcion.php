@@ -2,13 +2,13 @@
 
 namespace Controllers\Security;
 
-use Controllers\PublicController;
+use Controllers\PrivateController;
 use Views\Renderer;
 use Dao\Security\Funciones as DaoFunciones;
 use Utilities\Site;
 use Utilities\Validators;
 
-class Funcion extends PublicController
+class Funcion extends PrivateController
 {
     private $viewData = [];
     private $mode = "DSP";

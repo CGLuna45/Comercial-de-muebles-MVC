@@ -9,7 +9,7 @@ class Login extends \Controllers\PublicController
     private $generalError = "";
     private $hasError = false;
 
-    public function run() :void
+    public function run(): void
     {
         if ($this->isPostBack()) {
             $this->txtEmail = trim($_POST["txtEmail"] ?? "");
@@ -28,7 +28,7 @@ class Login extends \Controllers\PublicController
                 $this->hasError = true;
             }
 
-            if (! $this->hasError) {
+            if (!$this->hasError) {
                 if ($dbUser = \Dao\Security\Security::getUsuarioByEmail($this->txtEmail)) {
                     if ($dbUser["userest"] != \Dao\Security\Estados::ACTIVO) {
                         $this->generalError = "¡Credenciales son incorrectas!";
@@ -54,7 +54,7 @@ class Login extends \Controllers\PublicController
                         );
                         // Aqui se debe establecer acciones segun la politica de la institucion.
                     }
-                    if (! $this->hasError) {
+                    if (!$this->hasError) {
                         \Utilities\Security::login(
                             $dbUser["usercod"],
                             $dbUser["username"],
@@ -65,7 +65,11 @@ class Login extends \Controllers\PublicController
                                 \Utilities\Context::getContextByKey("redirto")
                             );
                         } else {
-                            \Utilities\Site::redirectTo("index.php");
+                            if (\Utilities\Security::isInRol($dbUser["usercod"], 1)) {
+                                \Utilities\Site::redirectTo("index.php?page=HomeController");
+                            } else {
+                                \Utilities\Site::redirectTo("index.php");
+                            }
                         }
                     }
                 } else {

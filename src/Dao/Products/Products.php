@@ -4,7 +4,7 @@ namespace Dao\Products;
 
 use Dao\Table;
 
-class  Products extends Table
+class Products extends Table
 {
     public static function getProducts(
         string $partialName = "",
@@ -12,9 +12,10 @@ class  Products extends Table
         string $orderBy = "",
         bool $orderDescending = false,
         int $page = 0,
-        int $itemsPerPage = 10
+        int $itemsPerPage = 10,
+        int $categoriaId = 0
     ) {
-        $sqlstr = "SELECT p.productId, p.productName, p.productDescription, p.productPrice, p.productImgUrl, p.productStatus, case when p.productStatus = 'ACT' then 'Activo' when p.productStatus = 'INA' then 'Inactivo' else 'Sin Asignar' end as productStatusDsc 
+        $sqlstr = "SELECT p.productId, p.categoriaId, p.productName, p.productDescription, p.productPrice, p.productImgUrl, p.productStatus, case when p.productStatus = 'ACT' then 'Activo' when p.productStatus = 'INA' then 'Inactivo' else 'Sin Asignar' end as productStatusDsc
     FROM products p";
         $sqlstrCount = "SELECT COUNT(*) as count FROM products p";
         $conditions = [];
@@ -29,6 +30,10 @@ class  Products extends Table
         if ($status != "") {
             $conditions[] = "p.productStatus = :status";
             $params["status"] = $status;
+        }
+        if ($categoriaId > 0) {
+            $conditions[] = "p.categoriaId = :categoriaId";
+            $params["categoriaId"] = $categoriaId;
         }
         if (count($conditions) > 0) {
             $sqlstr .= " WHERE " . implode(" AND ", $conditions);
@@ -48,30 +53,33 @@ class  Products extends Table
         if ($page > $pagesCount - 1) {
             $page = $pagesCount - 1;
         }
+        if ($page < 0) {
+            $page = 0;
+        }
         $sqlstr .= " LIMIT " . $page * $itemsPerPage . ", " . $itemsPerPage;
 
         $registros = self::obtenerRegistros($sqlstr, $params);
         return ["products" => $registros, "total" => $numeroDeRegistros, "page" => $page, "itemsPerPage" => $itemsPerPage];
     }
 
-
     public static function getProductById(int $productId)
     {
-        $sqlstr = "SELECT p.productId, p.productName, p.productDescription, p.productPrice, p.productImgUrl, p.productStatus FROM products p WHERE p.productId = :productId";
+        $sqlstr = "SELECT p.productId, p.categoriaId, p.productName, p.productDescription, p.productPrice, p.productImgUrl, p.productStatus FROM products p WHERE p.productId = :productId";
         $params = ["productId" => $productId];
         return self::obtenerUnRegistro($sqlstr, $params);
     }
 
-    //insert
     public static function insertProduct(
+        int $categoriaId,
         string $productName,
         string $productDescription,
         float $productPrice,
         string $productImgUrl,
         string $productStatus
     ) {
-        $sqlstr = "INSERT INTO products (productName, productDescription, productPrice, productImgUrl, productStatus) VALUES (:productName, :productDescription, :productPrice, :productImgUrl, :productStatus)";
+        $sqlstr = "INSERT INTO products (categoriaId, productName, productDescription, productPrice, productImgUrl, productStatus) VALUES (:categoriaId, :productName, :productDescription, :productPrice, :productImgUrl, :productStatus)";
         $params = [
+            "categoriaId" => $categoriaId,
             "productName" => $productName,
             "productDescription" => $productDescription,
             "productPrice" => $productPrice,
@@ -81,18 +89,19 @@ class  Products extends Table
         return self::executeNonQuery($sqlstr, $params);
     }
 
-    //Update
     public static function updateProduct(
         int $productId,
+        int $categoriaId,
         string $productName,
         string $productDescription,
         float $productPrice,
         string $productImgUrl,
         string $productStatus
     ) {
-        $sqlstr = "UPDATE products SET productName = :productName, productDescription = :productDescription, productPrice = :productPrice, productImgUrl = :productImgUrl, productStatus = :productStatus WHERE productId = :productId";
+        $sqlstr = "UPDATE products SET categoriaId = :categoriaId, productName = :productName, productDescription = :productDescription, productPrice = :productPrice, productImgUrl = :productImgUrl, productStatus = :productStatus WHERE productId = :productId";
         $params = [
             "productId" => $productId,
+            "categoriaId" => $categoriaId,
             "productName" => $productName,
             "productDescription" => $productDescription,
             "productPrice" => $productPrice,
@@ -102,7 +111,6 @@ class  Products extends Table
         return self::executeNonQuery($sqlstr, $params);
     }
 
-    //Delete
     public static function deleteProduct(int $productId)
     {
         $sqlstr = "DELETE FROM products WHERE productId = :productId";
@@ -114,24 +122,20 @@ class  Products extends Table
     {
         $sqlstr = "SELECT p.productId, p.productName, p.productDescription, p.productPrice, p.productImgUrl, p.productStatus FROM products p INNER JOIN highlights h ON p.productId = h.productId WHERE h.highlightStart <= NOW() AND h.highlightEnd >= NOW()";
         $params = [];
-        $registros = self::obtenerRegistros($sqlstr, $params);
-        return $registros;
+        return self::obtenerRegistros($sqlstr, $params);
     }
-
 
     public static function getNewProducts()
     {
         $sqlstr = "SELECT p.productId, p.productName, p.productDescription, p.productPrice, p.productImgUrl, p.productStatus FROM products p WHERE p.productStatus = 'ACT' ORDER BY p.productId DESC LIMIT 3";
         $params = [];
-        $registros = self::obtenerRegistros($sqlstr, $params);
-        return $registros;
+        return self::obtenerRegistros($sqlstr, $params);
     }
 
     public static function getDailyDeals()
     {
         $sqlstr = "SELECT p.productId, p.productName, p.productDescription, s.salePrice as productPrice, p.productImgUrl, p.productStatus FROM products p INNER JOIN sales s ON p.productId = s.productId WHERE s.saleStart <= NOW() AND s.saleEnd >= NOW()";
         $params = [];
-        $registros = self::obtenerRegistros($sqlstr, $params);
-        return $registros;
+        return self::obtenerRegistros($sqlstr, $params);
     }
 }

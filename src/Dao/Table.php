@@ -18,7 +18,7 @@ abstract class Table
     private static $_bindMapping = array(
         "boolean" => \PDO::PARAM_BOOL,
         "integer" => \PDO::PARAM_INT,
-        "double"  => \PDO::PARAM_STR,
+        "double" => \PDO::PARAM_STR,
         "string" => \PDO::PARAM_STR,
         "array" => \PDO::PARAM_STR,
         "object" => \PDO::PARAM_STR,
@@ -89,7 +89,7 @@ abstract class Table
         return $query->fetch();
     }
 
-    protected static function executeNonQuery($sqlstr, $params,  &$conn = null)
+    protected static function executeNonQuery($sqlstr, $params, &$conn = null)
     {
         $pConn = null;
         if ($conn != null) {
@@ -117,5 +117,11 @@ abstract class Table
         } else {
             return array();
         }
+    }
+
+    protected static function getLastInsertId()
+    {
+        $conn = self::getConn();
+        return $conn->lastInsertId();
     }
 }

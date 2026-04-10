@@ -1,18 +1,18 @@
 <?php
-
 namespace Controllers\Security;
-
 use Controllers\PrivateController;
 use Views\Renderer;
 use Dao\Security\Users as DaoUsers;
 use Utilities\Context;
 use Utilities\Paging;
+use Utilities\Security;
 
 class Users extends PrivateController
 {
     private $viewData = [];
     private $partialName = "";
     private $status = "";
+    private $usertipo = "";
     private $orderBy = "";
     private $orderDescending = false;
     private $pageNumber = 1;
@@ -25,13 +25,16 @@ class Users extends PrivateController
     {
         $this->getParamsFromContext();
         $this->getParams();
-
-        $tmpUsers = DaoUsers::searchUsers($this->partialName, $this->status);
+        $tmpUsers = DaoUsers::searchUsers($this->partialName, $this->status, $this->usertipo);
         $this->usersCount = count($tmpUsers);
         $this->pages = $this->usersCount > 0 ? ceil($this->usersCount / $this->itemsPerPage) : 1;
-
         $start = ($this->pageNumber - 1) * $this->itemsPerPage;
         $this->users = array_slice($tmpUsers, $start, $this->itemsPerPage);
+
+        $loggedUserId = Security::getUserId();
+        foreach ($this->users as &$user) {
+            $user["is_self"] = $user["usercod"] == $loggedUserId;
+        }
 
         $this->setParamsToContext();
         $this->setParamsToDataView();
@@ -42,6 +45,7 @@ class Users extends PrivateController
     {
         $this->partialName = $_GET["partialName"] ?? $this->partialName;
         $this->status = $_GET["status"] ?? $this->status;
+        $this->usertipo = $_GET["usertipo"] ?? $this->usertipo;
         $this->orderBy = $_GET["orderBy"] ?? $this->orderBy;
         $this->orderDescending = isset($_GET["orderDescending"]) ? boolval($_GET["orderDescending"]) : $this->orderDescending;
         $this->pageNumber = intval($_GET["pageNum"] ?? $this->pageNumber);
@@ -52,16 +56,20 @@ class Users extends PrivateController
     {
         $this->partialName = Context::getContextByKey("users_partialName");
         $this->status = Context::getContextByKey("users_status");
+        $this->usertipo = Context::getContextByKey("users_usertipo");
         $this->orderBy = Context::getContextByKey("users_orderBy");
         $this->orderDescending = boolval(Context::getContextByKey("users_orderDescending"));
         $this->pageNumber = intval(Context::getContextByKey("users_page"));
         $this->itemsPerPage = intval(Context::getContextByKey("users_itemsPerPage"));
+        if ($this->pageNumber < 1) $this->pageNumber = 1;
+        if ($this->itemsPerPage < 1) $this->itemsPerPage = 10;
     }
 
     private function setParamsToContext(): void
     {
         Context::setContext("users_partialName", $this->partialName, true);
         Context::setContext("users_status", $this->status, true);
+        Context::setContext("users_usertipo", $this->usertipo, true);
         Context::setContext("users_orderBy", $this->orderBy, true);
         Context::setContext("users_orderDescending", $this->orderDescending, true);
         Context::setContext("users_page", $this->pageNumber, true);
@@ -72,6 +80,7 @@ class Users extends PrivateController
     {
         $this->viewData["partialName"] = $this->partialName;
         $this->viewData["status"] = $this->status;
+        $this->viewData["usertipo"] = $this->usertipo;
         $this->viewData["orderBy"] = $this->orderBy;
         $this->viewData["orderDescending"] = $this->orderDescending;
         $this->viewData["pageNum"] = $this->pageNumber;
@@ -79,6 +88,13 @@ class Users extends PrivateController
         $this->viewData["usersCount"] = $this->usersCount;
         $this->viewData["pages"] = $this->pages;
         $this->viewData["users"] = $this->users;
+        $this->viewData["totalUsers"] = $this->usersCount;
+
+        $statusKey = "status_" . ($this->status === "" ? "EMP" : $this->status);
+        $this->viewData[$statusKey] = "selected";
+
+        $tipoKey = "tipo_" . ($this->usertipo === "" ? "EMP" : $this->usertipo);
+        $this->viewData[$tipoKey] = "selected";
 
         $this->viewData["pagination"] = Paging::getPagination(
             $this->usersCount,

@@ -5,6 +5,7 @@ namespace Controllers\Products;
 use Controllers\PrivateController;
 use Views\Renderer;
 use Dao\Products\Products as ProductsDao;
+use Dao\Products\Categorias as CategoriasDao;
 use Utilities\Site;
 use Utilities\Validators;
 
@@ -22,6 +23,7 @@ class Product extends PrivateController
     private $showCommitBtn = true;
     private $product = [
         "productId" => 0,
+        "categoriaId" => 0,
         "productName" => "",
         "productDescription" => "",
         "productPrice" => 0,
@@ -64,6 +66,7 @@ class Product extends PrivateController
         } else {
             throw new \Exception("Formulario cargado en modalidad invalida", 1);
         }
+        $this->viewData["categorias"] = CategoriasDao::getAll();
     }
 
     private function validateData()
@@ -71,6 +74,7 @@ class Product extends PrivateController
         $errors = [];
         $this->product_xss_token = $_POST["product_xss_token"] ?? "";
         $this->product["productId"] = intval($_POST["productId"] ?? "");
+        $this->product["categoriaId"] = intval($_POST["categoriaId"] ?? 0);
         $this->product["productName"] = strval($_POST["productName"] ?? "");
         $this->product["productDescription"] = strval($_POST["productDescription"] ?? "");
         $this->product["productPrice"] = floatval($_POST["productPrice"] ?? "");
@@ -80,19 +84,15 @@ class Product extends PrivateController
         if (Validators::IsEmpty($this->product["productName"])) {
             $errors["productName_error"] = "El nombre del producto es requerido";
         }
-
         if (Validators::IsEmpty($this->product["productDescription"])) {
             $errors["productDescription_error"] = "La descripción del producto es requerida";
         }
-
         if (Validators::IsEmpty($this->product["productPrice"]) && $this->product["productPrice"] <= 0) {
             $errors["productPrice_error"] = "El precio del producto es requerido y debe ser un valor mayor a cero";
         }
-
         if (Validators::IsEmpty($this->product["productImgUrl"])) {
             $errors["productImgUrl_error"] = "La imagen del producto es requerida";
         }
-
         if (!in_array($this->product["productStatus"], ["ACT", "INA"])) {
             $errors["productStatus_error"] = "El estado del producto es invalido";
         }
@@ -127,6 +127,7 @@ class Product extends PrivateController
     private function handleInsert()
     {
         $result = ProductsDao::insertProduct(
+            $this->product["categoriaId"],
             $this->product["productName"],
             $this->product["productDescription"],
             $this->product["productPrice"],
@@ -142,22 +143,23 @@ class Product extends PrivateController
     }
 
     private function handleUpdate()
-    {
-        $result = ProductsDao::updateProduct(
-            $this->product["productId"],
-            $this->product["productName"],
-            $this->product["productDescription"],
-            $this->product["productPrice"],
-            $this->product["productImgUrl"],
-            $this->product["productStatus"]
+{
+    $result = ProductsDao::updateProduct(
+        $this->product["productId"],
+        $this->product["categoriaId"],
+        $this->product["productName"],
+        $this->product["productDescription"],
+        $this->product["productPrice"],
+        $this->product["productImgUrl"],
+        $this->product["productStatus"]
+    );
+    if ($result > 0) {
+        Site::redirectToWithMsg(
+            "index.php?page=Products_Products",
+            "Producto actualizado exitosamente"
         );
-        if ($result > 0) {
-            Site::redirectToWithMsg(
-                "index.php?page=Products_Products",
-                "Producto actualizado exitosamente"
-            );
-        }
     }
+}
 
     private function handleDelete()
     {
@@ -169,6 +171,7 @@ class Product extends PrivateController
             );
         }
     }
+
     private function setViewData(): void
     {
         $this->viewData["mode"] = $this->mode;
@@ -183,6 +186,13 @@ class Product extends PrivateController
 
         $productStatusKey = "productStatus_" . strtolower($this->product["productStatus"]);
         $this->product[$productStatusKey] = "selected";
+
+        $productoCategoria = $this->product["categoriaId"] ?? 0;
+        $categorias = $this->viewData["categorias"];
+        foreach ($categorias as &$cat) {
+            $cat["selected"] = $cat["categoriaId"] == $productoCategoria ? "selected" : "";
+        }
+        $this->viewData["categorias"] = $categorias;
 
         $this->viewData["product"] = $this->product;
     }

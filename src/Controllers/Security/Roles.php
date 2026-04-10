@@ -2,12 +2,12 @@
 
 namespace Controllers\Security;
 
-use Controllers\PublicController;
+use Controllers\PrivateController;
 use Views\Renderer;
 use Dao\Security\Roles as DaoRoles;
 use Utilities\Site;
 
-class Roles extends PublicController
+class Roles extends PrivateController
 {
     private $viewData = [];
 
