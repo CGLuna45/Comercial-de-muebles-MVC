@@ -332,7 +332,7 @@ if (session_status() === PHP_SESSION_NONE) {
 
     <header class="header">
         <a href="index.php" class="logo-box">
-            <img src="/MVC_Muebles/comercial-de-muebles-MVC/img/logo-cedrika.png" alt="logo" class="logo-img">
+            <img src="img/logo-cedrika.png" alt="logo" class="logo-img">
             <span class="logo-txt">CÉDRIKA</span>
         </a>
 

@@ -3,32 +3,32 @@ session_start();
 
 // Router MVC: si viene page=..., ejecuta el controlador
 if (isset($_GET['page']) && trim($_GET['page']) !== '') {
-    require __DIR__ . '/vendor/autoload.php';
+    require __DIR__.'/vendor/autoload.php';
 
     try {
-        \Utilities\Site::configure();
-        $pageRequest = \Utilities\Site::getPageRequest();
+        Utilities\Site::configure();
+        $pageRequest = Utilities\Site::getPageRequest();
         $instance = new $pageRequest();
         $instance->run();
-        die();
-    } catch (\Controllers\PrivateNoAuthException $ex) {
-        $instance = new \Controllers\NoAuth();
+        exit;
+    } catch (Controllers\PrivateNoAuthException $ex) {
+        $instance = new Controllers\NoAuth();
         $instance->run();
-        die();
-    } catch (\Controllers\PrivateNoLoggedException $ex) {
-        $redirTo = urlencode(\Utilities\Context::getContextByKey('request_uri'));
-        \Utilities\Site::redirectTo('index.php?page=Sec_Login&redirto=' . $redirTo);
-        die();
-    } catch (\Exception $ex) {
-        \Utilities\Site::logError($ex, 500);
-        $instance = new \Controllers\Error();
+        exit;
+    } catch (Controllers\PrivateNoLoggedException $ex) {
+        $redirTo = urlencode(Utilities\Context::getContextByKey('request_uri'));
+        Utilities\Site::redirectTo('index.php?page=Sec_Login&redirto='.$redirTo);
+        exit;
+    } catch (Exception $ex) {
+        Utilities\Site::logError($ex, 500);
+        $instance = new Controllers\Error();
         $instance->run();
-        die();
-    } catch (\Error $ex) {
-        \Utilities\Site::logError($ex, 500);
-        $instance = new \Controllers\Error();
+        exit;
+    } catch (Error $ex) {
+        Utilities\Site::logError($ex, 500);
+        $instance = new Controllers\Error();
         $instance->run();
-        die();
+        exit;
     }
 }
 
@@ -290,7 +290,7 @@ $userEmail = $_SESSION['userEmail'] ?? '';
 
     <header class="header">
         <a href="index.php" class="logo-box">
-            <img src="/MVC_Muebles/comercial-de-muebles-MVC/img/logo-cedrika.png" alt="logo" class="logo-img">
+            <img src="img/logo-cedrika.png" alt="logo" class="logo-img">
             <span class="logo-txt">CÉDRIKA</span>
         </a>
 
@@ -298,13 +298,13 @@ $userEmail = $_SESSION['userEmail'] ?? '';
             <a href="index.php">Inicio</a>
             <a href="catalogo.php">Catálogo</a>
             <a href="carrito.php">🛒 Carrito <span class="badge"><?php echo $cart_count; ?></span></a>
-            <?php if ($isLogged): ?>
+            <?php if ($isLogged) { ?>
                 <span style="color: var(--cedro); font-weight:700;">Hola, <?php echo htmlspecialchars($userName); ?></span>
                 <a href="index.php?page=Sec_Logout">Cerrar Sesión</a>
-            <?php else: ?>
+            <?php } else { ?>
                 <a href="index.php?page=Sec_Login"><i class="fas fa-sign-in-alt"></i>&nbsp;Iniciar Sesión</a>
                 <a href="index.php?page=Sec_Register"><i class="fas fa-sign-in-alt"></i>&nbsp;Crear Cuenta</a>
-            <?php endif; ?>
+            <?php } ?>
         </nav>
     </header>
 
@@ -316,9 +316,9 @@ $userEmail = $_SESSION['userEmail'] ?? '';
                 Diseños modernos, acabados finos y esencia catracha.
             </p>
             <a href="catalogo.php" class="btn-main">Explorar Catálogo</a>
-            <?php if (!$isLogged): ?>
+            <?php if (!$isLogged) { ?>
                 <a href="index.php?page=Sec_Login" class="btn-main" style="margin-left: 12px; background-color: var(--cedro);">Ingresar</a>
-            <?php endif; ?>
+            <?php } ?>
         </div>
     </section>
 

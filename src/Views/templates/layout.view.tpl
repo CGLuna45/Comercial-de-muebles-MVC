@@ -5,8 +5,6 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>{{SITE_TITLE}}</title>
-  <link rel="preconnect" href="https://fonts.gstatic.com">
-  <link href="https://fonts.googleapis.com/css2?family=Roboto&display=swap" rel="stylesheet">
   <style>
     :root {
       --cedro: #5C4033;
@@ -44,6 +42,11 @@
       position: sticky;
       top: 0;
       z-index: 1000;
+      font-family: 'Segoe UI', sans-serif;
+    }
+
+    .header * {
+      font-family: 'Segoe UI', sans-serif;
     }
 
     .logo-box {
@@ -117,12 +120,18 @@
       padding: 40px 20px;
     }
 
-    footer {
-      background: var(--cedro);
-      color: white;
+    body > footer {
+      background: var(--cedro) !important;
+      color: #ffffff !important;
       text-align: center;
       padding: 35px 20px;
-      margin-top: auto;
+      margin-top: 40px;
+      display: block;
+    }
+
+    body > footer p {
+      color: #ffffff !important;
+      margin: 0;
     }
 
     @media(max-width: 768px) {
@@ -137,10 +146,10 @@
       }
     }
   </style>
-  <link rel="stylesheet" href="{{BASE_DIR}}/public/css/appstyle.css" />
   <link rel="stylesheet" href="public/css/appstyle.css" />
-  <link rel="stylesheet" href="/public/css/appstyle.css" />
+  {{if FONT_AWESOME_KIT}}
   <script src="https://kit.fontawesome.com/{{FONT_AWESOME_KIT}}.js" crossorigin="anonymous"></script>
+  {{endif FONT_AWESOME_KIT}}
   {{foreach SiteLinks}}
   <link rel="stylesheet" href="{{~BASE_DIR}}/{{this}}" />
   {{endfor SiteLinks}}
@@ -151,22 +160,21 @@
 
 <body>
   <header class="header">
-    <a href="?" class="logo-box">
-      <img src="/MVC_Muebles/comercial-de-muebles-MVC/img/logo-cedrika.png" alt="logo" class="logo-img">
+    <a href="index.php" class="logo-box">
+      <img src="img/logo-cedrika.png" alt="logo" class="logo-img">
       <span class="logo-txt">CÉDRIKA</span>
     </a>
 
     <nav class="nav-menu">
-      <a href="/MVC_Muebles/comercial-de-muebles-MVC/index.php">Inicio</a>
-      <a href="/MVC_Muebles/comercial-de-muebles-MVC/catalogo.php">Catálogo</a>
-      <a href="/MVC_Muebles/comercial-de-muebles-MVC/carrito.php">🛒 Carrito {{foreach CartCount}}<span class="badge">{{this}}</span>{{endfor CartCount}}</a>
+      <a href="index.php">Inicio</a>
+      <a href="catalogo.php">Catálogo</a>
+      <a href="carrito.php">🛒 Carrito {{foreach CartCount}}<span class="badge">{{this}}</span>{{endfor CartCount}}</a>
       {{if login}}
       <span style="color: var(--cedro); font-weight:700;">Hola, {{userName}}</span>
-      <a href="/MVC_Muebles/comercial-de-muebles-MVC/index.php?page=Sec_Logout">Cerrar Sesión</a>
+      <a href="index.php?page=Sec_Logout">Cerrar Sesión</a>
       {{else}}
-      {{foreach PUBLIC_NAVIGATION}}
-      <a href="/MVC_Muebles/comercial-de-muebles-MVC/{{nav_url}}">{{nav_label}}</a>
-      {{endfor PUBLIC_NAVIGATION}}
+      <a href="index.php?page=Sec_Login"><i class="fas fa-sign-in-alt"></i>&nbsp;Iniciar Sesión</a>
+      <a href="index.php?page=Sec_Register"><i class="fas fa-sign-in-alt"></i>&nbsp;Crear Cuenta</a>
       {{endif login}}
     </nav>
   </header>

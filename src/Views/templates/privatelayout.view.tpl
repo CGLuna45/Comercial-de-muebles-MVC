@@ -6,7 +6,9 @@
   <title>{{SITE_TITLE}} | Admin</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=Segoe+UI&display=swap" rel="stylesheet">
+  {{if FONT_AWESOME_KIT}}
   <script src="https://kit.fontawesome.com/{{FONT_AWESOME_KIT}}.js" crossorigin="anonymous"></script>
+  {{endif FONT_AWESOME_KIT}}
 {{foreach SiteLinks}}
   <link rel="stylesheet" href="{{~BASE_DIR}}/{{this}}" />
 {{endfor SiteLinks}}
