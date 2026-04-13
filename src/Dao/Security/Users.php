@@ -8,13 +8,29 @@ class Users extends Table
 {
     public static function getAllUsers(): array
     {
-        $sql = "SELECT * FROM usuarios ORDER BY username ASC";
+        $sql = "SELECT 
+                    u.usuarioId AS usercod,
+                    u.usuarioNombre AS username,
+                    u.usuarioEmail AS useremail,
+                    u.usuarioStatus AS userest,
+                    CASE WHEN ru.rolId = 1 THEN 'ADM' ELSE 'PBL' END AS usertipo
+                FROM usuarios u
+                LEFT JOIN roles_usuarios ru ON ru.usuarioId = u.usuarioId AND ru.ruStatus = 'ACT'
+                ORDER BY u.usuarioNombre ASC";
         return self::obtenerRegistros($sql, []);
     }
 
     public static function getUserById(int $usercod): array|false
     {
-        $sql = "SELECT * FROM usuarios WHERE usercod = :usercod";
+        $sql = "SELECT 
+                    u.usuarioId AS usercod,
+                    u.usuarioNombre AS username,
+                    u.usuarioEmail AS useremail,
+                    u.usuarioStatus AS userest,
+                    CASE WHEN ru.rolId = 1 THEN 'ADM' ELSE 'PBL' END AS usertipo
+                FROM usuarios u
+                LEFT JOIN roles_usuarios ru ON ru.usuarioId = u.usuarioId AND ru.ruStatus = 'ACT'
+                WHERE u.usuarioId = :usercod";
         $params = ["usercod" => $usercod];
         return self::obtenerUnRegistro($sql, $params);
     }
@@ -33,21 +49,15 @@ class Users extends Table
     ): int {
 
         $sql = "INSERT INTO usuarios 
-                (username, useremail, userpswd, userfching, userpswdest, userpswdexp, userest, useractcod, userpswdchg, usertipo)
-                VALUES
-                (:username, :useremail, :userpswd, :userfching, :userpswdest, :userpswdexp, :userest, :useractcod, :userpswdchg, :usertipo)";
+            (usuarioNombre, usuarioEmail, usuarioPass, usuarioStatus)
+            VALUES
+            (:username, :useremail, :userpswd, :userest)";
 
         $params = [
             "username" => $username,
             "useremail" => $useremail,
             "userpswd" => $userpswd,
-            "userfching" => $userfching,
-            "userpswdest" => $userpswdest,
-            "userpswdexp" => $userpswdexp,
             "userest" => $userest,
-            "useractcod" => $useractcod,
-            "userpswdchg" => $userpswdchg,
-            "usertipo" => $usertipo
         ];
 
         self::executeNonQuery($sql, $params);
@@ -70,20 +80,16 @@ class Users extends Table
     ): int {
 
         $sql = "UPDATE usuarios SET
-        username = :username,
-        useremail = :useremail,
-        userfching = :userfching,
-        userest = :userest,
-        usertipo = :usertipo
-        WHERE usercod = :usercod";
+        usuarioNombre = :username,
+        usuarioEmail = :useremail,
+        usuarioStatus = :userest
+        WHERE usuarioId = :usercod";
 
         $params = [
             "usercod" => $usercod,
             "username" => $username,
             "useremail" => $useremail,
-            "userfching" => $userfching,
             "userest" => $userest,
-            "usertipo" => $usertipo
         ];
 
         return self::executeNonQuery($sql, $params);
@@ -91,32 +97,40 @@ class Users extends Table
 
     public static function deleteUser(int $usercod): int
     {
-        $sql = "DELETE FROM usuarios WHERE usercod = :usercod";
+        $sql = "DELETE FROM usuarios WHERE usuarioId = :usercod";
         $params = ["usercod" => $usercod];
         return self::executeNonQuery($sql, $params);
     }
 
     public static function searchUsers(string $partialName = "", string $status = "", string $usertipo = ""): array
     {
-        $sql = "SELECT * FROM usuarios WHERE 1=1 ";
+        $sql = "SELECT 
+                    u.usuarioId AS usercod,
+                    u.usuarioNombre AS username,
+                    u.usuarioEmail AS useremail,
+                    u.usuarioStatus AS userest,
+                    CASE WHEN ru.rolId = 1 THEN 'ADM' ELSE 'PBL' END AS usertipo
+                FROM usuarios u
+                LEFT JOIN roles_usuarios ru ON ru.usuarioId = u.usuarioId AND ru.ruStatus = 'ACT'
+                WHERE 1=1 ";
         $params = [];
 
         if ($partialName !== "") {
-            $sql .= " AND username LIKE :partialName";
+            $sql .= " AND u.usuarioNombre LIKE :partialName";
             $params["partialName"] = "%" . $partialName . "%";
         }
 
         if (in_array($status, ["ACT", "INA"])) {
-            $sql .= " AND userest = :status";
+            $sql .= " AND u.usuarioStatus = :status";
             $params["status"] = $status;
         }
 
         if (in_array($usertipo, ["NOR", "ADM", "CON"])) {
-            $sql .= " AND usertipo = :usertipo";
+            $sql .= " AND (CASE WHEN ru.rolId = 1 THEN 'ADM' ELSE 'PBL' END) = :usertipo";
             $params["usertipo"] = $usertipo;
         }
 
-        $sql .= " ORDER BY username ASC";
+        $sql .= " ORDER BY u.usuarioNombre ASC";
 
         return self::obtenerRegistros($sql, $params);
     }
