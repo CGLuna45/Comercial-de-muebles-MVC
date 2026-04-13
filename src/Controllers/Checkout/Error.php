@@ -2,14 +2,19 @@
 
 namespace Controllers\Checkout;
 
-use Controllers\PrivateController;
-class Error extends PrivateController
+use Controllers\PublicController;
+
+class Error extends PublicController
 {
     public function run(): void
     {
-        echo "error";
-        die();
+        if (!\Utilities\Security::isLogged()) {
+            \Utilities\Site::redirectTo("index.php?page=Sec_Login");
+        }
+
+        $viewData = array(
+            "message" => "El pago fue cancelado o no se pudo completar.",
+        );
+        \Views\Renderer::render("paypal/error", $viewData);
     }
 }
-
-?>

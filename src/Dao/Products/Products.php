@@ -15,6 +15,69 @@ class Products extends Table
         int $itemsPerPage = 10,
         int $categoriaId = 0
     ) {
+        $legacyCount = self::obtenerUnRegistro("SELECT COUNT(*) AS count FROM products", [])["count"] ?? 0;
+
+        if ((int)$legacyCount === 0) {
+            $sqlstr = "SELECT 
+                        p.id AS productId,
+                        0 AS categoriaId,
+                        p.nombre AS productName,
+                        '' AS productDescription,
+                        p.precio AS productPrice,
+                        p.imagen AS productImgUrl,
+                        'ACT' AS productStatus,
+                        'Activo' AS productStatusDsc
+                    FROM productos p";
+            $sqlstrCount = "SELECT COUNT(*) AS count FROM productos p";
+            $conditions = [];
+            $params = [];
+
+            if ($partialName != "") {
+                $conditions[] = "(p.nombre LIKE :partialName OR p.categoria LIKE :partialName)";
+                $params["partialName"] = "%" . $partialName . "%";
+            }
+            if (!in_array($status, ["ACT", "INA", ""])) {
+                throw new \Exception("Error Processing Request Status has invalid value");
+            }
+            if ($status === "INA") {
+                return ["products" => [], "total" => 0, "page" => 0, "itemsPerPage" => $itemsPerPage];
+            }
+
+            if (count($conditions) > 0) {
+                $sqlstr .= " WHERE " . implode(" AND ", $conditions);
+                $sqlstrCount .= " WHERE " . implode(" AND ", $conditions);
+            }
+
+            $orderMap = [
+                "productId" => "p.id",
+                "productName" => "p.nombre",
+                "productPrice" => "p.precio",
+                "" => ""
+            ];
+            if (!array_key_exists($orderBy, $orderMap)) {
+                throw new \Exception("Error Processing Request OrderBy has invalid value");
+            }
+            if ($orderBy != "") {
+                $sqlstr .= " ORDER BY " . $orderMap[$orderBy];
+                if ($orderDescending) {
+                    $sqlstr .= " DESC";
+                }
+            }
+
+            $numeroDeRegistros = self::obtenerUnRegistro($sqlstrCount, $params)["count"];
+            $pagesCount = ceil($numeroDeRegistros / $itemsPerPage);
+            if ($page > $pagesCount - 1) {
+                $page = $pagesCount - 1;
+            }
+            if ($page < 0) {
+                $page = 0;
+            }
+            $sqlstr .= " LIMIT " . $page * $itemsPerPage . ", " . $itemsPerPage;
+
+            $registros = self::obtenerRegistros($sqlstr, $params);
+            return ["products" => $registros, "total" => $numeroDeRegistros, "page" => $page, "itemsPerPage" => $itemsPerPage];
+        }
+
         $sqlstr = "SELECT p.productId, p.categoriaId, p.productName, p.productDescription, p.productPrice, p.productImgUrl, p.productStatus, case when p.productStatus = 'ACT' then 'Activo' when p.productStatus = 'INA' then 'Inactivo' else 'Sin Asignar' end as productStatusDsc
     FROM products p";
         $sqlstrCount = "SELECT COUNT(*) as count FROM products p";
@@ -64,9 +127,23 @@ class Products extends Table
 
     public static function getProductById(int $productId)
     {
-        $sqlstr = "SELECT p.productId, p.categoriaId, p.productName, p.productDescription, p.productPrice, p.productImgUrl, p.productStatus FROM products p WHERE p.productId = :productId";
+        $sqlstr = "SELECT * FROM productos WHERE id = :productId LIMIT 1";
         $params = ["productId" => $productId];
         return self::obtenerUnRegistro($sqlstr, $params);
+    }
+
+    public static function decrementProductStock(int $productId, int $quantity)
+    {
+        $sqlstr = "UPDATE productos
+            SET stock = stock - :quantity
+            WHERE id = :productId
+              AND stock >= :quantity";
+        $params = [
+            "productId" => $productId,
+            "quantity" => $quantity
+        ];
+
+        return self::executeNonQuery($sqlstr, $params);
     }
 
     public static function insertProduct(

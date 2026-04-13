@@ -379,7 +379,7 @@ foreach ($_SESSION['cart'] as $item) {
         <div class="actions">
             <a href="catalogo.php" class="btn-gold">Seguir Comprando</a>
             <a href="carrito.php?action=empty" class="btn-empty">Vaciar Carrito</a>
-            <a href="checkout.php" class="btn-gold">Finalizar Compra</a>
+            <a href="index.php?page=Checkout_Checkout" class="btn-gold">Finalizar Compra</a>
         </div>
     </div>
 
