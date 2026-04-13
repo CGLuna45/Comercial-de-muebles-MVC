@@ -137,44 +137,79 @@ $userEmail = $_SESSION['userEmail'] ?? '';
 
         .hero {
             min-height: 88vh;
-            background: linear-gradient(rgba(92, 64, 51, 0.65), rgba(92, 64, 51, 0.65)),
-                url('img/sala.jpg') center/cover;
+            background:
+                radial-gradient(circle at 85% 20%, rgba(197, 160, 89, 0.35), transparent 48%),
+                linear-gradient(120deg, rgba(31, 20, 15, 0.72), rgba(92, 64, 51, 0.58)),
+                url('img/hero-panel.jpg') center/cover;
             display: flex;
             align-items: center;
             justify-content: center;
-            text-align: center;
-            padding: 40px 20px;
+            text-align: left;
+            padding: 58px 20px;
             color: white;
+            position: relative;
         }
 
         .hero-content {
-            max-width: 800px;
+            width: min(980px, 100%);
+            background: #4b3328;
+            border: 1px solid rgba(255, 255, 255, 0.14);
+            border-radius: 22px;
+            padding: 34px;
+            box-shadow: 0 16px 40px rgba(0, 0, 0, 0.24);
         }
 
         .hero h1 {
-            font-size: 3rem;
-            margin-bottom: 18px;
+            font-size: clamp(2rem, 4.2vw, 3.4rem);
+            margin-bottom: 16px;
+            max-width: 760px;
+            line-height: 1.15;
         }
 
         .hero p {
-            font-size: 1.1rem;
+            font-size: 1.06rem;
             line-height: 1.8;
-            margin-bottom: 28px;
+            margin-bottom: 26px;
+            max-width: 680px;
+            color: rgba(255, 255, 255, 0.95);
+        }
+
+        .hero-actions {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
         }
 
         .btn-main {
             display: inline-block;
             background: var(--dorado);
             color: white;
-            padding: 15px 32px;
+            padding: 14px 30px;
             border-radius: 999px;
             font-weight: bold;
             text-decoration: none;
             transition: 0.3s;
+            border: 1px solid transparent;
         }
 
         .btn-main:hover {
-            background: var(--cedro);
+            background: #b08c4d;
+        }
+
+        .btn-ghost {
+            display: inline-block;
+            background: transparent;
+            color: white;
+            padding: 14px 30px;
+            border-radius: 999px;
+            font-weight: bold;
+            text-decoration: none;
+            border: 1px solid rgba(255, 255, 255, 0.75);
+            transition: 0.3s;
+        }
+
+        .btn-ghost:hover {
+            background: rgba(255, 255, 255, 0.14);
         }
 
         .section {
@@ -279,8 +314,22 @@ $userEmail = $_SESSION['userEmail'] ?? '';
                 justify-content: center;
             }
 
-            .hero h1 {
-                font-size: 2.2rem;
+            .hero {
+                text-align: center;
+                padding: 44px 16px;
+            }
+
+            .hero-content {
+                padding: 24px;
+            }
+
+            .hero p {
+                margin-left: auto;
+                margin-right: auto;
+            }
+
+            .hero-actions {
+                justify-content: center;
             }
         }
     </style>
@@ -315,10 +364,12 @@ $userEmail = $_SESSION['userEmail'] ?? '';
                 Descubre nuestra colección exclusiva de muebles para sala, comedor y escritorio.
                 Diseños modernos, acabados finos y esencia catracha.
             </p>
-            <a href="catalogo.php" class="btn-main">Explorar Catálogo</a>
-            <?php if (!$isLogged) { ?>
-                <a href="index.php?page=Sec_Login" class="btn-main" style="margin-left: 12px; background-color: var(--cedro);">Ingresar</a>
-            <?php } ?>
+            <div class="hero-actions">
+                <a href="catalogo.php" class="btn-main">Explorar Catálogo</a>
+                <?php if (!$isLogged) { ?>
+                    <a href="index.php?page=Sec_Login" class="btn-ghost">Ingresar</a>
+                <?php } ?>
+            </div>
         </div>
     </section>
 
