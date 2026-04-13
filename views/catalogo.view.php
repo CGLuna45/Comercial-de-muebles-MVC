@@ -340,13 +340,13 @@ if (session_status() === PHP_SESSION_NONE) {
             <a href="index.php">Inicio</a>
             <a href="catalogo.php">Catálogo</a>
             <a href="carrito.php">🛒 Carrito <span class="badge"><?php echo $cart_count; ?></span></a>
-            <?php if ($isLogged): ?>
+            <?php if ($isLogged) { ?>
                 <span style="color: var(--cedro); font-weight:700;">Hola, <?php echo htmlspecialchars($userName); ?></span>
                 <a href="index.php?page=Sec_Logout">Cerrar Sesión</a>
-            <?php else: ?>
+            <?php } else { ?>
                 <a href="index.php?page=Sec_Login"><i class="fas fa-sign-in-alt"></i>&nbsp;Iniciar Sesión</a>
                 <a href="index.php?page=Sec_Register"><i class="fas fa-sign-in-alt"></i>&nbsp;Crear Cuenta</a>
-            <?php endif; ?>
+            <?php } ?>
         </nav>
     </header>
 
@@ -374,20 +374,20 @@ if (session_status() === PHP_SESSION_NONE) {
             <p>Diseños exclusivos para sala, comedor y escritorio.</p>
         </div>
 
-        <?php if (isset($_GET['status']) && $_GET['status'] == 'success'): ?>
+        <?php if (isset($_GET['status']) && $_GET['status'] == 'success') { ?>
             <div class="success-msg">Producto agregado al carrito correctamente.</div>
-        <?php endif; ?>
+        <?php } ?>
 
         <div class="grid">
-            <?php if (!empty($productos)): ?>
-                <?php foreach ($productos as $p): ?>
+            <?php if (!empty($productos)) { ?>
+                <?php foreach ($productos as $p) { ?>
                     <div class="card">
                         <?php
                         $productImage = trim($p['imagen']);
-                        if (!preg_match('/^https?:\/\//i', $productImage)) {
-                            $productImage = '/MVC_Muebles/comercial-de-muebles-MVC/' . ltrim($productImage, '/');
-                        }
-                        ?>
+                    if (!preg_match('/^https?:\/\//i', $productImage)) {
+                        $productImage = ltrim($productImage, '/');
+                    }
+                    ?>
                         <img src="<?php echo htmlspecialchars($productImage); ?>"
                             alt="<?php echo htmlspecialchars($p['nombre']); ?>"
                             onerror="this.src='https://placehold.co/290x250?text=No+existe+la+imagen&bg=ddd&txtclr=999'">
@@ -414,10 +414,10 @@ if (session_status() === PHP_SESSION_NONE) {
                             </form>
                         </div>
                     </div>
-                <?php endforeach; ?>
-            <?php else: ?>
+                <?php } ?>
+            <?php } else { ?>
                 <p class="empty-msg">No se encontraron productos para tu búsqueda.</p>
-            <?php endif; ?>
+            <?php } ?>
         </div>
     </div>
 
