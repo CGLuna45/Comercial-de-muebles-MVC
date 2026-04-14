@@ -1,38 +1,40 @@
 <?php
 session_start();
 
+// Entrada principal: enruta al MVC cuando llega ?page=..., o muestra portada paUblica
+
 // Router MVC: si viene page=..., ejecuta el controlador
 if (isset($_GET['page']) && trim($_GET['page']) !== '') {
-    require __DIR__ . '/vendor/autoload.php';
+    require __DIR__.'/vendor/autoload.php';
 
     try {
-        \Utilities\Site::configure();
-        $pageRequest = \Utilities\Site::getPageRequest();
+        Utilities\Site::configure();
+        $pageRequest = Utilities\Site::getPageRequest();
         $instance = new $pageRequest();
         $instance->run();
-        die();
-    } catch (\Controllers\PrivateNoAuthException $ex) {
-        $instance = new \Controllers\NoAuth();
+        exit;
+    } catch (Controllers\PrivateNoAuthException $ex) {
+        $instance = new Controllers\NoAuth();
         $instance->run();
-        die();
-    } catch (\Controllers\PrivateNoLoggedException $ex) {
-        $redirTo = urlencode(\Utilities\Context::getContextByKey('request_uri'));
-        \Utilities\Site::redirectTo('index.php?page=Sec_Login&redirto=' . $redirTo);
-        die();
-    } catch (\Exception $ex) {
-        \Utilities\Site::logError($ex, 500);
-        $instance = new \Controllers\Error();
+        exit;
+    } catch (Controllers\PrivateNoLoggedException $ex) {
+        $redirTo = urlencode(Utilities\Context::getContextByKey('request_uri'));
+        Utilities\Site::redirectTo('index.php?page=Sec_Login&redirto='.$redirTo);
+        exit;
+    } catch (Exception $ex) {
+        Utilities\Site::logError($ex, 500);
+        $instance = new Controllers\Error();
         $instance->run();
-        die();
-    } catch (\Error $ex) {
-        \Utilities\Site::logError($ex, 500);
-        $instance = new \Controllers\Error();
+        exit;
+    } catch (Error $ex) {
+        Utilities\Site::logError($ex, 500);
+        $instance = new Controllers\Error();
         $instance->run();
-        die();
+        exit;
     }
 }
 
-// Si no hay page=, mostrar portada estática
+// Si no hay page=, mostrar portada estatica
 $cart_count = 0;
 if (isset($_SESSION['cart'])) {
     foreach ($_SESSION['cart'] as $item) {
@@ -40,7 +42,7 @@ if (isset($_SESSION['cart'])) {
     }
 }
 
-// Variables de sesión para mostrar en HTML
+// Variables de sesion para mostrar en HTML
 $isLogged = isset($_SESSION['login']) && $_SESSION['login']['isLogged'];
 $userName = $_SESSION['userName'] ?? '';
 $userEmail = $_SESSION['userEmail'] ?? '';
@@ -137,44 +139,79 @@ $userEmail = $_SESSION['userEmail'] ?? '';
 
         .hero {
             min-height: 88vh;
-            background: linear-gradient(rgba(92, 64, 51, 0.65), rgba(92, 64, 51, 0.65)),
-                url('img/sala.jpg') center/cover;
+            background:
+                radial-gradient(circle at 85% 20%, rgba(197, 160, 89, 0.35), transparent 48%),
+                linear-gradient(120deg, rgba(31, 20, 15, 0.72), rgba(92, 64, 51, 0.58)),
+                url('img/hero-panel.jpg') center/cover;
             display: flex;
             align-items: center;
             justify-content: center;
-            text-align: center;
-            padding: 40px 20px;
+            text-align: left;
+            padding: 58px 20px;
             color: white;
+            position: relative;
         }
 
         .hero-content {
-            max-width: 800px;
+            width: min(980px, 100%);
+            background: #4b3328;
+            border: 1px solid rgba(255, 255, 255, 0.14);
+            border-radius: 22px;
+            padding: 34px;
+            box-shadow: 0 16px 40px rgba(0, 0, 0, 0.24);
         }
 
         .hero h1 {
-            font-size: 3rem;
-            margin-bottom: 18px;
+            font-size: clamp(2rem, 4.2vw, 3.4rem);
+            margin-bottom: 16px;
+            max-width: 760px;
+            line-height: 1.15;
         }
 
         .hero p {
-            font-size: 1.1rem;
+            font-size: 1.06rem;
             line-height: 1.8;
-            margin-bottom: 28px;
+            margin-bottom: 26px;
+            max-width: 680px;
+            color: rgba(255, 255, 255, 0.95);
+        }
+
+        .hero-actions {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
         }
 
         .btn-main {
             display: inline-block;
             background: var(--dorado);
             color: white;
-            padding: 15px 32px;
+            padding: 14px 30px;
             border-radius: 999px;
             font-weight: bold;
             text-decoration: none;
             transition: 0.3s;
+            border: 1px solid transparent;
         }
 
         .btn-main:hover {
-            background: var(--cedro);
+            background: #b08c4d;
+        }
+
+        .btn-ghost {
+            display: inline-block;
+            background: transparent;
+            color: white;
+            padding: 14px 30px;
+            border-radius: 999px;
+            font-weight: bold;
+            text-decoration: none;
+            border: 1px solid rgba(255, 255, 255, 0.75);
+            transition: 0.3s;
+        }
+
+        .btn-ghost:hover {
+            background: rgba(255, 255, 255, 0.14);
         }
 
         .section {
@@ -279,8 +316,22 @@ $userEmail = $_SESSION['userEmail'] ?? '';
                 justify-content: center;
             }
 
-            .hero h1 {
-                font-size: 2.2rem;
+            .hero {
+                text-align: center;
+                padding: 44px 16px;
+            }
+
+            .hero-content {
+                padding: 24px;
+            }
+
+            .hero p {
+                margin-left: auto;
+                margin-right: auto;
+            }
+
+            .hero-actions {
+                justify-content: center;
             }
         }
     </style>
@@ -290,7 +341,7 @@ $userEmail = $_SESSION['userEmail'] ?? '';
 
     <header class="header">
         <a href="index.php" class="logo-box">
-            <img src="/MVC_Muebles/comercial-de-muebles-MVC/img/logo-cedrika.png" alt="logo" class="logo-img">
+            <img src="img/logo-cedrika.png" alt="logo" class="logo-img">
             <span class="logo-txt">CÉDRIKA</span>
         </a>
 
@@ -298,13 +349,13 @@ $userEmail = $_SESSION['userEmail'] ?? '';
             <a href="index.php">Inicio</a>
             <a href="catalogo.php">Catálogo</a>
             <a href="carrito.php">🛒 Carrito <span class="badge"><?php echo $cart_count; ?></span></a>
-            <?php if ($isLogged): ?>
-                <span style="color: var(--cedro); font-weight:700;">Hola, <?php echo htmlspecialchars($userName); ?></span>
+            <?php if ($isLogged) { ?>
+                <a href="index.php?page=Security_Perfil" style="color: var(--cedro); font-weight:700; text-decoration:none;">Hola, <?php echo htmlspecialchars($userName); ?></a>
                 <a href="index.php?page=Sec_Logout">Cerrar Sesión</a>
-            <?php else: ?>
+            <?php } else { ?>
                 <a href="index.php?page=Sec_Login"><i class="fas fa-sign-in-alt"></i>&nbsp;Iniciar Sesión</a>
                 <a href="index.php?page=Sec_Register"><i class="fas fa-sign-in-alt"></i>&nbsp;Crear Cuenta</a>
-            <?php endif; ?>
+            <?php } ?>
         </nav>
     </header>
 
@@ -315,10 +366,12 @@ $userEmail = $_SESSION['userEmail'] ?? '';
                 Descubre nuestra colección exclusiva de muebles para sala, comedor y escritorio.
                 Diseños modernos, acabados finos y esencia catracha.
             </p>
-            <a href="catalogo.php" class="btn-main">Explorar Catálogo</a>
-            <?php if (!$isLogged): ?>
-                <a href="index.php?page=Sec_Login" class="btn-main" style="margin-left: 12px; background-color: var(--cedro);">Ingresar</a>
-            <?php endif; ?>
+            <div class="hero-actions">
+                <a href="catalogo.php" class="btn-main">Explorar Catálogo</a>
+                <?php if (!$isLogged) { ?>
+                    <a href="index.php?page=Sec_Login" class="btn-ghost">Ingresar</a>
+                <?php } ?>
+            </div>
         </div>
     </section>
 

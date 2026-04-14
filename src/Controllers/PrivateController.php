@@ -24,6 +24,9 @@ abstract class PrivateController extends PublicController
 {
     private function _isAuthorized()
     {
+        if ($this->name === "Controllers\\Security\\Perfil") {
+            return;
+        }
         $isAuthorized = \Utilities\Security::isAuthorized(
             \Utilities\Security::getUserId(),
             $this->name,

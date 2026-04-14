@@ -9,6 +9,7 @@ use Dao\Security\Security as DaoSecurity;
 use Utilities\Site;
 use Utilities\Validators;
 
+// CRUD de usuario del sistema
 class User extends PrivateController
 {
     private $viewData = [];
@@ -38,8 +39,12 @@ class User extends PrivateController
         "usertipo" => "NOR"
     ];
 
+    // =============================
+    // RUN
+    // =============================
     public function run(): void
     {
+        // Orquesta carga, validaciaIn y guardado del formulario de usuario
         try {
             $this->getData();
             if ($this->isPostBack() && $this->validateData()) {
@@ -55,8 +60,12 @@ class User extends PrivateController
         }
     }
 
+    // =============================
+    // GETDATA
+    // =============================
     private function getData()
     {
+        // Carga datos iniciales segaUn modo y usuario objetivo
         $this->mode = $_GET["mode"] ?? "NOF";
 
         if (!isset($this->modeDescriptions[$this->mode])) {
@@ -90,17 +99,24 @@ class User extends PrivateController
     }
 
     /**
-     * Devuelve true si el usuario logueado está editando su propio perfil.
+     * Devuelve true si el usuario logueado esta editando su propio perfil
      * Usa $_SESSION["login"]["userId"] guardado por Utilities\Security::login()
      */
+    // =============================
+    // ISEDITINGSELF
+    // =============================
     private function isEditingSelf(): bool
     {
         $loggedUserId = \Utilities\Security::getUserId();
         return intval($this->user["usercod"]) === intval($loggedUserId);
     }
 
+    // =============================
+    // VALIDATEDATA
+    // =============================
     private function validateData(): bool
     {
+        // Valida entradas y aplica restricciones de autoediciaIn
         $errors = [];
 
         $this->user["usercod"] = intval($_POST["usercod"] ?? 0);
@@ -114,7 +130,7 @@ class User extends PrivateController
             $this->user["useremail"] = trim($_POST["useremail"] ?? "");
         }
 
-        // Estado y Tipo: si se edita a sí mismo, conservar los de la BD
+        // Estado y Tipo: si se edita a si mismo, conservar los de la BD
         if ($this->isEditingSelf() && $this->mode === "UPD") {
             $currentData = DaoUsers::getUserById($this->user["usercod"]);
             $this->user["userest"] = $currentData["userest"];
@@ -148,8 +164,12 @@ class User extends PrivateController
         return true;
     }
 
+    // =============================
+    // HANDLEPOST
+    // =============================
     private function handlePost()
     {
+        // Ejecuta accion INS/UPD/DEL segaUn modo
         switch ($this->mode) {
             case "INS":
                 $hashedPswd = \Dao\Security\Security::hashPasswordPublic($this->user["userpswd"]);
@@ -199,13 +219,19 @@ class User extends PrivateController
 
     /**
      * Elimina todos los roles del usuario y asigna el que corresponde
-     * según el tipo (usertipo) seleccionado en el formulario.
+     * segaUn el tipo (usertipo) seleccionado en el formulario
      *
-     * Mapa de tipos → IDs de rol en la tabla roles:
+
+
+
+     * Mapa de tipos -> IDs de rol en la tabla roles:
      *   ADM => 1  (Administrador)
      *   NOR => 2  (Normal)
      *   CON => 3  (Consulta)
      */
+    // =============================
+    // ASSIGNROLE
+    // =============================
     private function assignRole(int $usercod, string $usertipo): void
     {
         \Dao\Security\Security::removeAllRolesFromUser($usercod);
@@ -222,10 +248,13 @@ class User extends PrivateController
     }
 
     /**
-     * Genera el HTML completo de un <input> como string listo para la vista.
-     * Así evitamos poner atributos dinámicos dentro del HTML del template,
-     * que el renderer no soporta correctamente.
+     * Genera el HTML completo de un <input> como string listo para la vista
+     * Asi evitamos poner atributos dinamicos dentro del HTML del template,
+     * que el renderer no soporta correctamente
      */
+    // =============================
+    // BUILDINPUT
+    // =============================
     private function buildInput(
         string $type,
         string $name,
@@ -241,8 +270,11 @@ class User extends PrivateController
     }
 
     /**
-     * Genera el HTML completo de un <select> como string listo para la vista.
+     * Genera el HTML completo de un <select> como string listo para la vista
      */
+    // =============================
+    // BUILDSELECT
+    // =============================
     private function buildSelect(
         string $name,
         array $options,
@@ -260,8 +292,12 @@ class User extends PrivateController
         return $html;
     }
 
+    // =============================
+    // SETVIEWDATA
+    // =============================
     private function setViewData(): void
     {
+        // Arma componentes dinamicos para el template
         $this->viewData["FormTitle"] = sprintf(
             $this->modeDescriptions[$this->mode],
             $this->user["username"] ?? ""
@@ -327,10 +363,10 @@ class User extends PrivateController
             ? '<div class="self-note">&#9888; No puedes cambiar tu propio tipo</div>'
             : "";
 
-        // Botón de acción 
-        // DSP  → sin botón
-        // INS/UPD → botón dorado "Guardar"
-        // DEL  → botón rojo "Eliminar"
+        // Boton de accion 
+        // DSP  -> sin boton
+        // INS/UPD -> boton dorado "Guardar"
+        // DEL  -> boton rojo "Eliminar"
         if ($this->mode === "DSP") {
             $this->viewData["commitBtn"] = "";
         } elseif ($this->mode === "DEL") {

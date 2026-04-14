@@ -2,6 +2,8 @@
 session_start();
 require_once 'db.php';
 
+// Procesa el pago simulado legacy, registra transaccion y descuenta stock en products
+
 if (!isset($_SESSION['cart']) || empty($_SESSION['cart'])) {
     header("Location: carrito.php");
     exit;
@@ -22,25 +24,23 @@ $total = $subtotal + $isv;
 /* =========================
    2. Obtener o crear usuario
 ========================= */
-$usuarioId = 0;
+$usuarioId = intval($_SESSION['login']['userId'] ?? 0);
 
-$sqlUsuario = "SELECT usuarioId FROM usuarios ORDER BY usuarioId ASC LIMIT 1";
-$resUsuario = $db->query($sqlUsuario);
-
-if ($resUsuario && $resUsuario->num_rows > 0) {
-    $filaUsuario = $resUsuario->fetch_assoc();
-    $usuarioId = $filaUsuario['usuarioId'];
-} else {
+if ($usuarioId <= 0) {
     $nombreDemo = "Usuario Demo";
     $emailDemo = "demo@cedrika.com";
     $passDemo = password_hash("123456", PASSWORD_DEFAULT);
+    $fechaDemo = date("Y-m-d H:i:s");
+    $passExpDemo = date("Y-m-d H:i:s", strtotime("+90 days"));
     $statusDemo = "ACT";
+    $actCodDemo = hash("sha256", $emailDemo . time());
+    $tipoDemo = "NOR";
 
-    $sqlInsertUsuario = "INSERT INTO usuarios (usuarioNombre, usuarioEmail, usuarioPass, usuarioStatus)
-                         VALUES (?, ?, ?, ?)";
+    $sqlInsertUsuario = "INSERT INTO usuario (username, useremail, userpswd, userfching, userpswdest, userpswdexp, userest, useractcod, userpswdchg, usertipo)
+                         VALUES (?, ?, ?, ?, 'ACT', ?, ?, ?, ?, ?)";
 
     $stmtInsertUsuario = $db->prepare($sqlInsertUsuario);
-    $stmtInsertUsuario->bind_param("ssss", $nombreDemo, $emailDemo, $passDemo, $statusDemo);
+    $stmtInsertUsuario->bind_param("sssssssss", $nombreDemo, $emailDemo, $passDemo, $fechaDemo, $passExpDemo, $statusDemo, $actCodDemo, $fechaDemo, $tipoDemo);
 
     if (!$stmtInsertUsuario->execute()) {
         die("Error al crear usuario demo: " . $stmtInsertUsuario->error);
@@ -124,15 +124,17 @@ if ($resCategoria && $resCategoria->num_rows > 0) {
 }
 
 /* =========================
-   7. Guardar detalle de transacción
+   7. Guardar detalle de transacción y descontar stock
 ========================= */
-$sqlBuscarProducto = "SELECT productId FROM products WHERE productName = ? LIMIT 1";
+$sqlBuscarProducto = "SELECT productId, productStock FROM products WHERE productId = ? LIMIT 1";
 $stmtBuscarProducto = $db->prepare($sqlBuscarProducto);
 
-$sqlInsertProducto = "INSERT INTO products
-(categoriaId, productName, productDescription, productPrice, productStock, productImgUrl, productStatus)
-VALUES (?, ?, ?, ?, ?, ?, ?)";
-$stmtInsertProducto = $db->prepare($sqlInsertProducto);
+$sqlActualizarStock = "UPDATE products
+                                             SET productStock = productStock - ?,
+                                                     productStatus = CASE WHEN (productStock - ?) > 0 THEN 'ACT' ELSE 'INA' END
+                       WHERE productId = ?
+                         AND productStock >= ?";
+$stmtActualizarStock = $db->prepare($sqlActualizarStock);
 
 $sqlDetalle = "INSERT INTO transacciones_detalle
 (transaccionId, productId, transDetalleCantidad, transDetallePrecio, transDetalleSubtotal)
@@ -140,41 +142,28 @@ VALUES (?, ?, ?, ?, ?)";
 $stmtDetalle = $db->prepare($sqlDetalle);
 
 foreach ($_SESSION['cart'] as $item) {
+    $productId = intval($item['id'] ?? 0);
     $nombreProducto = $item['nombre'];
     $precioProducto = $item['precio'];
     $cantidadProducto = $item['cantidad'];
-    $imagenProducto = $item['imagen'];
     $subtotalLinea = $precioProducto * $cantidadProducto;
-    $stockProducto = 100;
-    $descripcionProducto = "Producto generado automáticamente desde carrito";
-    $statusProducto = "ACT";
 
-    // Buscar si ya existe en products
-    $stmtBuscarProducto->bind_param("s", $nombreProducto);
+    if ($productId <= 0) {
+        die("Error: producto inválido en la carretilla ($nombreProducto).");
+    }
+
+    // Verificar existencia y stock del producto
+    $stmtBuscarProducto->bind_param("i", $productId);
     $stmtBuscarProducto->execute();
     $resBuscarProducto = $stmtBuscarProducto->get_result();
 
-    if ($resBuscarProducto && $resBuscarProducto->num_rows > 0) {
-        $filaProducto = $resBuscarProducto->fetch_assoc();
-        $productId = $filaProducto['productId'];
-    } else {
-        // Crear producto en products si no existe
-        $stmtInsertProducto->bind_param(
-            "issdiss",
-            $categoriaId,
-            $nombreProducto,
-            $descripcionProducto,
-            $precioProducto,
-            $stockProducto,
-            $imagenProducto,
-            $statusProducto
-        );
+    if (!$resBuscarProducto || $resBuscarProducto->num_rows === 0) {
+        die("Error: el producto #$productId no existe en catálogo.");
+    }
 
-        if (!$stmtInsertProducto->execute()) {
-            die("Error al crear producto en products: " . $stmtInsertProducto->error);
-        }
-
-        $productId = $db->insert_id;
+    $filaProducto = $resBuscarProducto->fetch_assoc();
+    if (intval($filaProducto['productStock']) < $cantidadProducto) {
+        die("Stock insuficiente para '$nombreProducto'. Disponible: " . intval($filaProducto['productStock']));
     }
 
     // Guardar detalle
@@ -189,6 +178,12 @@ foreach ($_SESSION['cart'] as $item) {
 
     if (!$stmtDetalle->execute()) {
         die("Error al guardar detalle: " . $stmtDetalle->error);
+    }
+
+    // Descontar stock
+    $stmtActualizarStock->bind_param("iiii", $cantidadProducto, $cantidadProducto, $productId, $cantidadProducto);
+    if (!$stmtActualizarStock->execute() || $stmtActualizarStock->affected_rows <= 0) {
+        die("Error al actualizar stock para el producto #$productId.");
     }
 }
 

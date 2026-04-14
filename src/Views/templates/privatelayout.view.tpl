@@ -6,7 +6,9 @@
   <title>{{SITE_TITLE}} | Admin</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=Segoe+UI&display=swap" rel="stylesheet">
+  {{if FONT_AWESOME_KIT}}
   <script src="https://kit.fontawesome.com/{{FONT_AWESOME_KIT}}.js" crossorigin="anonymous"></script>
+  {{endif FONT_AWESOME_KIT}}
 {{foreach SiteLinks}}
   <link rel="stylesheet" href="{{~BASE_DIR}}/{{this}}" />
 {{endfor SiteLinks}}
@@ -44,6 +46,14 @@
     .nav-right a { text-decoration: none; color: var(--cedro); font-weight: 700; font-size: 0.95rem; transition: 0.3s; }
     .nav-right a:hover { color: var(--dorado); }
     .username-label { color: var(--cedro); font-weight: 700; font-size: 0.95rem; }
+    .profile-link { display: inline-flex; align-items: center; gap: 0.35rem; }
+    .inline-icon {
+      width: 1rem;
+      height: 1rem;
+      display: inline-block;
+      vertical-align: -0.15rem;
+      fill: currentColor;
+    }
 
     /* HAMBURGER */
     .menu_toggle { display: none; }
@@ -79,6 +89,20 @@
       border-left: 3px solid transparent;
     }
     .sidebar ul li a:hover { background: rgba(197,160,89,0.2); color: var(--dorado); border-left-color: var(--dorado); }
+    .sidebar .nav-icon {
+      width: 1rem;
+      height: 1rem;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      flex: 0 0 1rem;
+    }
+    .sidebar .nav-icon svg {
+      width: 1rem;
+      height: 1rem;
+      fill: currentColor;
+      display: block;
+    }
     .sidebar ul li.divider { border-top: 1px solid rgba(255,255,255,0.15); margin: 0.5rem 0; }
 
     /* MAIN */
@@ -104,20 +128,20 @@
     </a>
     <div class="nav-right">
       {{with login}}
-      <span class="username-label"><i class="fas fa-user-circle"></i> {{userName}}</span>
-      <a href="index.php?page=sec_logout"><i class="fas fa-sign-out-alt"></i> Salir</a>
+      <a href="index.php?page=Security_Perfil" class="username-label profile-link"><svg class="inline-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 12a4 4 0 1 0-4-4 4 4 0 0 0 4 4zm0 2c-4.42 0-8 2.24-8 5v1h16v-1c0-2.76-3.58-5-8-5z"/></svg> Hola, {{userName}}</a>
+      <a href="index.php?page=sec_logout"><svg class="inline-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M10 17v-3H3v-4h7V7l5 5-5 5zm3 4H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h8v2H5v14h8v2zm8-9h-7v-2h7V7l4 5-4 5v-3z"/></svg> Salir</a>
       {{endwith login}}
     </div>
   </header>
 
   <nav class="sidebar">
     <ul>
-      <li><a href="index.php?page={{PRIVATE_DEFAULT_CONTROLLER}}"><i class="fas fa-home"></i> Inicio</a></li>
+      <li><a href="index.php?page={{PRIVATE_DEFAULT_CONTROLLER}}"><svg class="inline-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3l9 8h-3v10h-5v-6H11v6H6V11H3l9-8z"/></svg> Inicio</a></li>
       {{foreach NAVIGATION}}
       <li><a href="{{nav_url}}">{{nav_label}}</a></li>
       {{endfor NAVIGATION}}
       <li class="divider"></li>
-      <li><a href="index.php?page=sec_logout"><i class="fas fa-sign-out-alt"></i> Cerrar Sesión</a></li>
+      <li><a href="index.php?page=sec_logout"><svg class="inline-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M10 17v-3H3v-4h7V7l5 5-5 5zm3 4H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h8v2H5v14h8v2zm8-9h-7v-2h7V7l4 5-4 5v-3z"/></svg> Cerrar Sesión</a></li>
     </ul>
   </nav>
 
@@ -126,7 +150,7 @@
   </main>
 
   <footer>
-    <p>© {{~CURRENT_YEAR}} CÉDRIKA | Panel Administrativo</p>
+    <p>© {{~CURRENT_YEAR}} CÉDRIKA | La Ceiba, Honduras</p>
   </footer>
 
 {{foreach EndScripts}}

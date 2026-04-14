@@ -7,6 +7,7 @@ use Utilities\Context;
 use Utilities\Paging;
 use Utilities\Security;
 
+// Listado y filtros de usuarios para administraciaIn
 class Users extends PrivateController
 {
     private $viewData = [];
@@ -21,8 +22,12 @@ class Users extends PrivateController
     private $usersCount = 0;
     private $pages = 0;
 
+    // =============================
+    // RUN
+    // =============================
     public function run(): void
     {
+        // Lista usuarios y aplica filtros guardados en contexto
         $this->getParamsFromContext();
         $this->getParams();
         $tmpUsers = DaoUsers::searchUsers($this->partialName, $this->status, $this->usertipo);
@@ -41,8 +46,12 @@ class Users extends PrivateController
         Renderer::render("security/users", $this->viewData);
     }
 
+    // =============================
+    // GETPARAMS
+    // =============================
     private function getParams(): void
     {
+        // Lee filtros y paginacion enviados por querystring
         $this->partialName = $_GET["partialName"] ?? $this->partialName;
         $this->status = $_GET["status"] ?? $this->status;
         $this->usertipo = $_GET["usertipo"] ?? $this->usertipo;
@@ -52,8 +61,12 @@ class Users extends PrivateController
         $this->itemsPerPage = intval($_GET["itemsPerPage"] ?? $this->itemsPerPage);
     }
 
+    // =============================
+    // GETPARAMSFROMCONTEXT
+    // =============================
     private function getParamsFromContext(): void
     {
+        // Recupera filtros de la sesion de navegaciaIn
         $this->partialName = Context::getContextByKey("users_partialName");
         $this->status = Context::getContextByKey("users_status");
         $this->usertipo = Context::getContextByKey("users_usertipo");
@@ -65,8 +78,12 @@ class Users extends PrivateController
         if ($this->itemsPerPage < 1) $this->itemsPerPage = 10;
     }
 
+    // =============================
+    // SETPARAMSTOCONTEXT
+    // =============================
     private function setParamsToContext(): void
     {
+        // Persiste estado actual de filtros
         Context::setContext("users_partialName", $this->partialName, true);
         Context::setContext("users_status", $this->status, true);
         Context::setContext("users_usertipo", $this->usertipo, true);
@@ -76,8 +93,12 @@ class Users extends PrivateController
         Context::setContext("users_itemsPerPage", $this->itemsPerPage, true);
     }
 
+    // =============================
+    // SETPARAMSTODATAVIEW
+    // =============================
     private function setParamsToDataView(): void
     {
+        // Prepara datos de lista y paginacion para la vista
         $this->viewData["partialName"] = $this->partialName;
         $this->viewData["status"] = $this->status;
         $this->viewData["usertipo"] = $this->usertipo;

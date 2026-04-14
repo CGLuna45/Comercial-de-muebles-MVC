@@ -2,7 +2,9 @@
 session_start();
 require_once 'db.php';
 
-// Variables de sesión para mostrar en HTML
+// Pagina de carrito: valida disponibilidad actual y mantiene el carrito sincronizado con stock real
+
+// Variables de sesion para mostrar en HTML
 $isLogged = isset($_SESSION['login']) && $_SESSION['login']['isLogged'];
 $userName = $_SESSION['userName'] ?? '';
 $userEmail = $_SESSION['userEmail'] ?? '';
@@ -10,6 +12,45 @@ $userEmail = $_SESSION['userEmail'] ?? '';
 // Crear carrito si no existe
 if (!isset($_SESSION['cart'])) {
     $_SESSION['cart'] = [];
+}
+
+$cartSyncMessages = [];
+if (!empty($_SESSION['cart'])) {
+    // Limpia productos inactivos/sin stock y ajusta cantidades fuera de rango
+    foreach ($_SESSION['cart'] as $sessionKey => &$item) {
+        $productId = intval($item['id'] ?? $sessionKey);
+        if ($productId <= 0) {
+            unset($_SESSION['cart'][$sessionKey]);
+            continue;
+        }
+
+        $resStock = $db->query("SELECT productId, productName, productPrice, productImgUrl, productStock, productStatus FROM products WHERE productId = $productId LIMIT 1");
+        if (!$resStock || $resStock->num_rows === 0) {
+            unset($_SESSION['cart'][$sessionKey]);
+            $cartSyncMessages[] = "Se eliminó un producto del carrito porque ya no está disponible.";
+            continue;
+        }
+
+        $currentProduct = $resStock->fetch_assoc();
+        $availableStock = intval($currentProduct['productStock'] ?? 0);
+        $currentStatus = strval($currentProduct['productStatus'] ?? 'INA');
+
+        if ($availableStock <= 0 || $currentStatus !== 'ACT') {
+            unset($_SESSION['cart'][$sessionKey]);
+            $cartSyncMessages[] = "Se eliminó " . $currentProduct['productName'] . " del carrito por falta de stock.";
+            continue;
+        }
+
+        $item['nombre'] = $currentProduct['productName'];
+        $item['precio'] = floatval($currentProduct['productPrice']);
+        $item['imagen'] = $currentProduct['productImgUrl'];
+
+        if (intval($item['cantidad']) > $availableStock) {
+            $item['cantidad'] = $availableStock;
+            $cartSyncMessages[] = "Se ajustó la cantidad de " . $currentProduct['productName'] . " al stock disponible.";
+        }
+    }
+    unset($item);
 }
 
 // =============================
@@ -23,32 +64,37 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['accion']) && $_POST['
         $cantidad = 1;
     }
 
-    $res = $db->query("SELECT * FROM productos WHERE id = $id LIMIT 1");
+    $res = $db->query("SELECT productId, productName, productPrice, productImgUrl, productStock FROM products WHERE productId = $id LIMIT 1");
     if ($res && $res->num_rows > 0) {
         $producto = $res->fetch_assoc();
 
-        if ($cantidad > $producto['stock']) {
-            $cantidad = $producto['stock'];
+        if (intval($producto['productStock']) <= 0) {
+            header('Location: catalogo.php?status=nosotock');
+            exit;
+        }
+
+        if ($cantidad > $producto['productStock']) {
+            $cantidad = $producto['productStock'];
         }
 
         if (isset($_SESSION['cart'][$id])) {
             $_SESSION['cart'][$id]['cantidad'] += $cantidad;
 
-            if ($_SESSION['cart'][$id]['cantidad'] > $producto['stock']) {
-                $_SESSION['cart'][$id]['cantidad'] = $producto['stock'];
+            if ($_SESSION['cart'][$id]['cantidad'] > $producto['productStock']) {
+                $_SESSION['cart'][$id]['cantidad'] = $producto['productStock'];
             }
         } else {
             $_SESSION['cart'][$id] = [
-                'id' => $producto['id'],
-                'nombre' => $producto['nombre'],
-                'precio' => $producto['precio'],
-                'imagen' => $producto['imagen'],
-                'cantidad' => $cantidad
+                'id' => $producto['productId'],
+                'nombre' => $producto['productName'],
+                'precio' => $producto['productPrice'],
+                'imagen' => $producto['productImgUrl'],
+                'cantidad' => $cantidad,
             ];
         }
     }
 
-    header("Location: catalogo.php?status=success");
+    header('Location: catalogo.php?status=success');
     exit;
 }
 
@@ -58,7 +104,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['accion']) && $_POST['
 if (isset($_GET['action']) && $_GET['action'] === 'remove' && isset($_GET['id'])) {
     $id = intval($_GET['id']);
     unset($_SESSION['cart'][$id]);
-    header("Location: carrito.php");
+    header('Location: carrito.php');
     exit;
 }
 
@@ -68,7 +114,7 @@ if (isset($_GET['action']) && $_GET['action'] === 'remove' && isset($_GET['id'])
 if (isset($_GET['action']) && $_GET['action'] === 'empty') {
     unset($_SESSION['cart']);
     $_SESSION['cart'] = [];
-    header("Location: carrito.php");
+    header('Location: carrito.php');
     exit;
 }
 
@@ -112,28 +158,53 @@ foreach ($_SESSION['cart'] as $item) {
 
         body { 
             background-color: var(--arena); 
-            color: var(--cedro); 
+            color: var(--cedro);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
         }
 
-        .header { 
-            background: var(--blanco); 
-            padding: 15px 7%; 
-            display: flex; 
-            justify-content: space-between; 
-            align-items: center; 
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1); 
+        .header {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(8px);
+            padding: 18px 7%;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
+            position: sticky;
+            top: 0;
+            z-index: 1000;
         }
 
-        .logo-box { display: flex; align-items: center; gap: 10px; }
-        .logo-img { width: 45px; height: auto; }
-        .logo-txt { font-size: 1.6rem; color: var(--cedro); font-weight: bold; letter-spacing: 2px; }
+        .logo-box {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        .logo-img {
+            width: 52px;
+            height: 52px;
+            object-fit: contain;
+        }
 
-        .nav-menu a { 
+        .logo-txt {
+            font-size: 1.7rem;
+            color: var(--cedro);
+            font-weight: 800;
+            letter-spacing: 2px;
+        }
+
+        .nav-menu {
+            display: flex;
+            align-items: center;
+            gap: 22px;
+        }
+
+        .nav-menu a {
             color: var(--cedro) !important; 
-            font-weight: 600; 
-            margin-left: 25px; 
-            text-transform: uppercase; 
-            font-size: 0.9rem;
+            font-weight: 700;
+            font-size: 0.95rem;
             transition: 0.3s;
         }
 
@@ -151,7 +222,17 @@ foreach ($_SESSION['cart'] as $item) {
         .container { 
             padding: 50px 7%; 
             max-width: 1100px; 
-            margin: 0 auto; 
+            margin: 0 auto;
+            width: 100%;
+            flex: 1;
+        }
+
+        .site-footer {
+            background: var(--cedro);
+            color: white;
+            text-align: center;
+            padding: 30px;
+            margin-top: 50px;
         }
 
         .cart-table { 
@@ -244,7 +325,27 @@ foreach ($_SESSION['cart'] as $item) {
             margin-top: 20px;
         }
 
+        .cart-alert {
+            background: #fff4df;
+            border: 1px solid #f1d7a4;
+            color: #7a5a1b;
+            border-radius: 12px;
+            padding: 12px 14px;
+            margin-bottom: 12px;
+            font-weight: 600;
+        }
+
         @media(max-width: 768px){
+            .header {
+                flex-direction: column;
+                gap: 15px;
+            }
+
+            .nav-menu {
+                flex-wrap: wrap;
+                justify-content: center;
+            }
+
             .cart-table, .cart-table thead, .cart-table tbody, .cart-table tr, .cart-table th, .cart-table td {
                 display: block;
                 width: 100%;
@@ -273,27 +374,31 @@ foreach ($_SESSION['cart'] as $item) {
 
 <header class="header">
     <a href="index.php" class="logo-box">
-        <img src="/MVC_Muebles/comercial-de-muebles-MVC/img/logo-cedrika.png" alt="logo" class="logo-img">
+        <img src="img/logo-cedrika.png" alt="logo" class="logo-img">
         <span class="logo-txt">CÉDRIKA</span>
     </a>
     <nav class="nav-menu">
         <a href="index.php">Inicio</a>
         <a href="catalogo.php">Catálogo</a>
         <a href="carrito.php">🛒 Carrito <span class="badge"><?php echo $cart_count; ?></span></a>
-        <?php if ($isLogged): ?>
-            <span style="color: var(--cedro); font-weight:700;">Hola, <?php echo htmlspecialchars($userName); ?></span>
+        <?php if ($isLogged) { ?>
+            <a href="index.php?page=Security_Perfil" style="color: var(--cedro); font-weight:700; text-decoration:none;">Hola, <?php echo htmlspecialchars($userName); ?></a>
             <a href="index.php?page=Sec_Logout">Cerrar Sesión</a>
-        <?php else: ?>
+        <?php } else { ?>
             <a href="index.php?page=Sec_Login"><i class="fas fa-sign-in-alt"></i>&nbsp;Iniciar Sesión</a>
             <a href="index.php?page=Sec_Register"><i class="fas fa-sign-in-alt"></i>&nbsp;Crear Cuenta</a>
-        <?php endif; ?>
+        <?php } ?>
     </nav>
 </header>
 
 <div class="container">
     <h2 style="margin-bottom: 30px; border-left: 5px solid var(--dorado); padding-left: 15px;">Tu Historial de Compra / Carrito</h2>
 
-    <?php if ($cart_count > 0): ?>
+    <?php foreach ($cartSyncMessages as $cartMsg) { ?>
+    <div class="cart-alert"><?php echo htmlspecialchars($cartMsg); ?></div>
+    <?php } ?>
+
+    <?php if ($cart_count > 0) { ?>
     <table class="cart-table">
         <thead>
             <tr>
@@ -305,9 +410,9 @@ foreach ($_SESSION['cart'] as $item) {
             </tr>
         </thead>
         <tbody>
-            <?php foreach ($_SESSION['cart'] as $item): 
+            <?php foreach ($_SESSION['cart'] as $item) {
                 $sub = $item['precio'] * $item['cantidad'];
-            ?>
+                ?>
             <tr>
                 <td>
                     <div class="product-info">
@@ -322,7 +427,7 @@ foreach ($_SESSION['cart'] as $item) {
                     <a href="carrito.php?action=remove&id=<?php echo $item['id']; ?>" class="btn-remove">Eliminar</a>
                 </td>
             </tr>
-            <?php endforeach; ?>
+            <?php } ?>
         </tbody>
     </table>
 
@@ -334,19 +439,19 @@ foreach ($_SESSION['cart'] as $item) {
         <div class="actions">
             <a href="catalogo.php" class="btn-gold">Seguir Comprando</a>
             <a href="carrito.php?action=empty" class="btn-empty">Vaciar Carrito</a>
-            <a href="checkout.php" class="btn-gold">Finalizar Compra</a>
+            <a href="index.php?page=Checkout_Checkout" class="btn-gold">Finalizar Compra</a>
         </div>
     </div>
 
-    <?php else: ?>
+    <?php } else { ?>
     <div style="text-align: center; padding: 80px; background: white; border-radius: 20px;">
         <p style="font-size: 1.3rem; color: #999; margin-bottom: 20px;">El carrito está vacío por el momento.</p>
         <a href="catalogo.php" class="btn-gold">Ir al Catálogo</a>
     </div>
-    <?php endif; ?>
+    <?php } ?>
 </div>
 
-<footer style="background: var(--cedro); color: white; text-align: center; padding: 30px; margin-top: 50px;">
+<footer class="site-footer">
     <p>© 2026 CÉDRIKA | Mueblería Artesanal</p>
 </footer>
 
