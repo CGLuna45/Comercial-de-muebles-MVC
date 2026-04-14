@@ -29,6 +29,16 @@ class Transacciones extends PrivateController
         );
 
         $transactions = $tmp["transactions"];
+        foreach ($transactions as &$transaction) {
+            $transactionId = intval($transaction["transaccionId"] ?? 0);
+            if ($transactionId > 0) {
+                $transaction["details"] = DaoTransacciones::getTransactionDetailsByTransactionId($transactionId);
+            } else {
+                $transaction["details"] = [];
+            }
+        }
+        unset($transaction);
+
         $total = $tmp["total"];
         $pages = $total > 0 ? ceil($total / $this->itemsPerPage) : 1;
         if ($this->pageNumber > $pages) {

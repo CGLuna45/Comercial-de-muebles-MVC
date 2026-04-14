@@ -59,7 +59,7 @@
         <th>Categoria</th>
         <th class="right">Precio</th>
         <th class="right">Stock actual</th>
-        <th class="right">Sugerido comprar</th>
+        <th class="right">Cantidades vendidas</th>
       </tr>
     </thead>
     <tbody>
@@ -69,7 +69,7 @@
         <td>{{categoria}}</td>
         <td class="right">L {{precio}}</td>
         <td class="right">{{stock}}</td>
-        <td class="right">{{sugeridoComprar}}</td>
+        <td class="right">{{cantidadesVendidas}}</td>
       </tr>
       {{endfor purchases}}
     </tbody>

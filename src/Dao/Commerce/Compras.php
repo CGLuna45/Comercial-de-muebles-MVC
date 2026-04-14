@@ -18,12 +18,18 @@ class Compras extends Table
                     p.categoria,
                     p.precio,
                     p.stock,
-                    CASE
-                        WHEN p.stock <= 0 THEN 25
-                        WHEN p.stock <= 5 THEN (20 - p.stock)
-                        ELSE 0
-                    END AS sugeridoComprar
+                    COALESCE(v.totalVendidas, 0) AS cantidadesVendidas
                 FROM productos p
+                LEFT JOIN (
+                    SELECT
+                        td.productId,
+                        SUM(td.transDetalleCantidad) AS totalVendidas
+                    FROM transacciones_detalle td
+                    INNER JOIN transacciones t
+                        ON t.transaccionId = td.transaccionId
+                    WHERE t.transaccionStatus IN ('PAG', 'COM', 'ACT')
+                    GROUP BY td.productId
+                ) v ON v.productId = p.id
                 WHERE 1=1 ";
         $countSql = "SELECT COUNT(*) AS total
                 FROM productos p

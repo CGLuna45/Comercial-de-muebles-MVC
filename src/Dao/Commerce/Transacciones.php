@@ -15,22 +15,22 @@ class Transacciones extends Table
         $sql = "SELECT
                     t.transaccionId,
                     t.usuarioId,
-                    COALESCE(u.usuarioNombre, 'Sin usuario') AS usuarioNombre,
-                    COALESCE(u.usuarioEmail, 'N/A') AS usuarioEmail,
+                    COALESCE(u.username, 'Sin usuario') AS usuarioNombre,
+                    COALESCE(u.useremail, 'N/A') AS usuarioEmail,
                     t.transaccionTotal,
                     t.transaccionStatus,
                     t.transaccionFecha,
                     t.paypalOrderId,
                     t.paypalStatus
                 FROM transacciones t
-                LEFT JOIN usuarios u ON u.usuarioId = t.usuarioId
+                LEFT JOIN usuario u ON u.usercod = t.usuarioId
                 WHERE 1=1 ";
-        $countSql = "SELECT COUNT(*) AS total FROM transacciones t LEFT JOIN usuarios u ON u.usuarioId = t.usuarioId WHERE 1=1 ";
+        $countSql = "SELECT COUNT(*) AS total FROM transacciones t LEFT JOIN usuario u ON u.usercod = t.usuarioId WHERE 1=1 ";
         $params = [];
 
         if ($partial !== "") {
-            $sql .= " AND (u.usuarioNombre LIKE :partial OR u.usuarioEmail LIKE :partial OR t.paypalOrderId LIKE :partial) ";
-            $countSql .= " AND (u.usuarioNombre LIKE :partial OR u.usuarioEmail LIKE :partial OR t.paypalOrderId LIKE :partial) ";
+            $sql .= " AND (u.username LIKE :partial OR u.useremail LIKE :partial OR t.paypalOrderId LIKE :partial) ";
+            $countSql .= " AND (u.username LIKE :partial OR u.useremail LIKE :partial OR t.paypalOrderId LIKE :partial) ";
             $params["partial"] = "%" . $partial . "%";
         }
 
@@ -56,5 +56,58 @@ class Transacciones extends Table
             "page" => $page,
             "itemsPerPage" => $itemsPerPage
         ];
+    }
+
+    public static function getTransactionsByUser(int $userId, int $page = 0, int $itemsPerPage = 10): array
+    {
+        $sql = "SELECT
+                    t.transaccionId,
+                    t.usuarioId,
+                    COALESCE(u.username, 'Sin usuario') AS usuarioNombre,
+                    COALESCE(u.useremail, 'N/A') AS usuarioEmail,
+                    t.transaccionTotal,
+                    t.transaccionStatus,
+                    t.transaccionFecha,
+                    t.paypalOrderId,
+                    t.paypalStatus
+                FROM transacciones t
+                LEFT JOIN usuario u ON u.usercod = t.usuarioId
+                WHERE t.usuarioId = :userId
+                ORDER BY t.transaccionFecha DESC, t.transaccionId DESC";
+        $countSql = "SELECT COUNT(*) AS total FROM transacciones t WHERE t.usuarioId = :userId";
+        $params = ["userId" => $userId];
+
+        $totalResult = self::obtenerUnRegistro($countSql, $params);
+        $total = intval($totalResult["total"] ?? 0);
+
+        $offset = $page * $itemsPerPage;
+        $sql .= " LIMIT $offset, $itemsPerPage";
+
+        $rows = self::obtenerRegistros($sql, $params);
+
+        return [
+            "transactions" => $rows,
+            "total" => $total,
+            "page" => $page,
+            "itemsPerPage" => $itemsPerPage
+        ];
+    }
+
+    public static function getTransactionDetailsByTransactionId(int $transactionId): array
+    {
+        $sql = "SELECT
+                    td.transDetalleId,
+                    td.transaccionId,
+                    td.productId,
+                    COALESCE(p.productName, CONCAT('Producto #', td.productId)) AS productName,
+                    td.transDetalleCantidad,
+                    td.transDetallePrecio,
+                    td.transDetalleSubtotal
+                FROM transacciones_detalle td
+                LEFT JOIN products p ON p.productId = td.productId
+                WHERE td.transaccionId = :transaccionId
+                ORDER BY td.transDetalleId ASC";
+
+        return self::obtenerRegistros($sql, ["transaccionId" => $transactionId]);
     }
 }
