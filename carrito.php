@@ -12,6 +12,44 @@ if (!isset($_SESSION['cart'])) {
     $_SESSION['cart'] = [];
 }
 
+$cartSyncMessages = [];
+if (!empty($_SESSION['cart'])) {
+    foreach ($_SESSION['cart'] as $sessionKey => &$item) {
+        $productId = intval($item['id'] ?? $sessionKey);
+        if ($productId <= 0) {
+            unset($_SESSION['cart'][$sessionKey]);
+            continue;
+        }
+
+        $resStock = $db->query("SELECT productId, productName, productPrice, productImgUrl, productStock, productStatus FROM products WHERE productId = $productId LIMIT 1");
+        if (!$resStock || $resStock->num_rows === 0) {
+            unset($_SESSION['cart'][$sessionKey]);
+            $cartSyncMessages[] = "Se eliminó un producto del carrito porque ya no está disponible.";
+            continue;
+        }
+
+        $currentProduct = $resStock->fetch_assoc();
+        $availableStock = intval($currentProduct['productStock'] ?? 0);
+        $currentStatus = strval($currentProduct['productStatus'] ?? 'INA');
+
+        if ($availableStock <= 0 || $currentStatus !== 'ACT') {
+            unset($_SESSION['cart'][$sessionKey]);
+            $cartSyncMessages[] = "Se eliminó " . $currentProduct['productName'] . " del carrito por falta de stock.";
+            continue;
+        }
+
+        $item['nombre'] = $currentProduct['productName'];
+        $item['precio'] = floatval($currentProduct['productPrice']);
+        $item['imagen'] = $currentProduct['productImgUrl'];
+
+        if (intval($item['cantidad']) > $availableStock) {
+            $item['cantidad'] = $availableStock;
+            $cartSyncMessages[] = "Se ajustó la cantidad de " . $currentProduct['productName'] . " al stock disponible.";
+        }
+    }
+    unset($item);
+}
+
 // =============================
 // AGREGAR AL CARRITO
 // =============================
@@ -23,26 +61,31 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['accion']) && $_POST['
         $cantidad = 1;
     }
 
-    $res = $db->query("SELECT * FROM productos WHERE id = $id LIMIT 1");
+    $res = $db->query("SELECT productId, productName, productPrice, productImgUrl, productStock FROM products WHERE productId = $id LIMIT 1");
     if ($res && $res->num_rows > 0) {
         $producto = $res->fetch_assoc();
 
-        if ($cantidad > $producto['stock']) {
-            $cantidad = $producto['stock'];
+        if (intval($producto['productStock']) <= 0) {
+            header('Location: catalogo.php?status=nosotock');
+            exit;
+        }
+
+        if ($cantidad > $producto['productStock']) {
+            $cantidad = $producto['productStock'];
         }
 
         if (isset($_SESSION['cart'][$id])) {
             $_SESSION['cart'][$id]['cantidad'] += $cantidad;
 
-            if ($_SESSION['cart'][$id]['cantidad'] > $producto['stock']) {
-                $_SESSION['cart'][$id]['cantidad'] = $producto['stock'];
+            if ($_SESSION['cart'][$id]['cantidad'] > $producto['productStock']) {
+                $_SESSION['cart'][$id]['cantidad'] = $producto['productStock'];
             }
         } else {
             $_SESSION['cart'][$id] = [
-                'id' => $producto['id'],
-                'nombre' => $producto['nombre'],
-                'precio' => $producto['precio'],
-                'imagen' => $producto['imagen'],
+                'id' => $producto['productId'],
+                'nombre' => $producto['productName'],
+                'precio' => $producto['productPrice'],
+                'imagen' => $producto['productImgUrl'],
                 'cantidad' => $cantidad,
             ];
         }
@@ -279,6 +322,16 @@ foreach ($_SESSION['cart'] as $item) {
             margin-top: 20px;
         }
 
+        .cart-alert {
+            background: #fff4df;
+            border: 1px solid #f1d7a4;
+            color: #7a5a1b;
+            border-radius: 12px;
+            padding: 12px 14px;
+            margin-bottom: 12px;
+            font-weight: 600;
+        }
+
         @media(max-width: 768px){
             .header {
                 flex-direction: column;
@@ -337,6 +390,10 @@ foreach ($_SESSION['cart'] as $item) {
 
 <div class="container">
     <h2 style="margin-bottom: 30px; border-left: 5px solid var(--dorado); padding-left: 15px;">Tu Historial de Compra / Carrito</h2>
+
+    <?php foreach ($cartSyncMessages as $cartMsg) { ?>
+    <div class="cart-alert"><?php echo htmlspecialchars($cartMsg); ?></div>
+    <?php } ?>
 
     <?php if ($cart_count > 0) { ?>
     <table class="cart-table">

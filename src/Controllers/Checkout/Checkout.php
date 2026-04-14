@@ -13,6 +13,7 @@ class Checkout extends PublicController
             \Utilities\Site::redirectTo('index.php?page=Sec_Login&redirto='.$redirTo);
         }
 
+        $this->normalizeSessionCart();
         $items = $this->getSessionCartItems();
         if (count($items) === 0) {
             \Utilities\Site::redirectTo('carrito.php');
@@ -125,5 +126,54 @@ class Checkout extends PublicController
         }
 
         return $scheme.'://'.$host.$scriptDir.'/';
+    }
+
+    private function normalizeSessionCart(): void
+    {
+        $sessionCart = $_SESSION['cart'] ?? [];
+        if (!is_array($sessionCart) || empty($sessionCart)) {
+            $_SESSION['cart'] = [];
+            return;
+        }
+
+        foreach ($sessionCart as $key => &$item) {
+            $productId = intval($item['id'] ?? $key);
+            if ($productId <= 0) {
+                unset($sessionCart[$key]);
+                continue;
+            }
+
+            $availableProducts = \Dao\Cart\Cart::getProductoDisponible($productId);
+            if (!isset($availableProducts[$productId])) {
+                unset($sessionCart[$key]);
+                continue;
+            }
+
+            $available = $availableProducts[$productId];
+            $availableStock = intval($available['productStock'] ?? 0);
+            if ($availableStock <= 0) {
+                unset($sessionCart[$key]);
+                continue;
+            }
+
+            $quantity = intval($item['cantidad'] ?? 0);
+            if ($quantity <= 0) {
+                unset($sessionCart[$key]);
+                continue;
+            }
+
+            if ($quantity > $availableStock) {
+                $quantity = $availableStock;
+            }
+
+            $item['id'] = $productId;
+            $item['nombre'] = strval($available['productName'] ?? ($item['nombre'] ?? 'Producto'));
+            $item['precio'] = floatval($available['productPrice'] ?? ($item['precio'] ?? 0));
+            $item['imagen'] = strval($available['productImgUrl'] ?? ($item['imagen'] ?? ''));
+            $item['cantidad'] = $quantity;
+        }
+        unset($item);
+
+        $_SESSION['cart'] = $sessionCart;
     }
 }

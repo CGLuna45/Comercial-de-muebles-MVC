@@ -109,12 +109,32 @@ class Accept extends PublicController
                             (:transaccionId, :productId, :transDetalleCantidad, :transDetallePrecio, :transDetalleSubtotal)"
                     );
 
+                    $stmtDecreaseStock = $conn->prepare(
+                        "UPDATE products
+                            SET productStock = productStock - :quantity,
+                                productStatus = CASE WHEN (productStock - :quantity) > 0 THEN 'ACT' ELSE 'INA' END
+                         WHERE productId = :productId
+                           AND productStock >= :quantity"
+                    );
+
                     foreach ($items as $item) {
                         $this->ensureProductRecord($conn, $item);
+
+                        $productId = intval($item["id"]);
+                        $quantity = intval($item["quantity"]);
+                        $stmtDecreaseStock->execute(array(
+                            "productId" => $productId,
+                            "quantity" => $quantity,
+                        ));
+
+                        if (intval($stmtDecreaseStock->rowCount()) <= 0) {
+                            throw new \Exception("Stock insuficiente para el producto #" . $productId);
+                        }
+
                         $stmtDetalle->execute(array(
                             "transaccionId" => $transaccionId,
-                            "productId" => intval($item["id"]),
-                            "transDetalleCantidad" => intval($item["quantity"]),
+                            "productId" => $productId,
+                            "transDetalleCantidad" => $quantity,
                             "transDetallePrecio" => floatval($item["price"]),
                             "transDetalleSubtotal" => floatval($item["lineSubtotal"]),
                         ));
@@ -128,19 +148,13 @@ class Accept extends PublicController
                     throw $persistEx;
                 }
 
-                foreach ($dataview["items"] as $item) {
-                    \Dao\Products\Products::decrementProductStock(
-                        (int) $item["id"],
-                        (int) $item["quantity"]
-                    );
-                }
-
                 $_SESSION["cart"] = array();
             } else {
                 $dataview["message"] = "PayPal no confirmo el pago como completado.";
             }
             $dataview["orderjson"] = json_encode($result, JSON_PRETTY_PRINT);
         } catch (\Exception $ex) {
+            $dataview["isSuccess"] = false;
             $dataview["message"] = "Ocurrio un problema al capturar la orden.";
         }
 
