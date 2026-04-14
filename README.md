@@ -2,23 +2,33 @@
 
 ![Logo CEDRIKA](img/logo-cedrika.png)
 
-Este proyecto corresponde a una tienda web de muebles llamada CEDRIKA, desarrollada con PHP y estructura MVC.
+Aplicacion web de tienda de muebles, desarrollada en PHP con patron MVC, Proyecto Final de la asignatura Negocios Web IF362-2001
 
-## El proyecto incluye
+Integrantes del grupo:
 
-- Portada principal del negocio.
-- Catalogo de productos de muebles.
-- Carrito de compras y proceso de checkout.
-- Modulo de inicio de sesion y registro de usuarios.
-- Controladores, DAO, utilidades y vistas en estructura MVC.
-- Recursos visuales (CSS e imagenes) para la interfaz del sitio.
-- Scripts SQL para estructura de base de datos.
+- Adi Belen Mendoza Ortiz - 0601200301811
+- Arony Daniel Castillo Banegas - 0801200317280
+- Carlos Gustavo Luna Acosta - 0301200402911
+- José Ramón Hernández Espinal - 0801200306613
+- Riccy Nicole Mejía Sandoval - 0209200600120
+- Yessenia Nicolle Baquedano Cruz - 0601200502457
 
 ## Estructura general
 
-- `src/Controllers`: logica de controladores.
-- `src/Dao`: acceso a datos.
-- `src/Utilities`: funciones auxiliares.
-- `src/Views/templates`: plantillas de vistas.
-- `public/css` y `img`: estilos e imagenes del proyecto.
-- `database` y `docs/scripts`: scripts SQL de base de datos.
+Publico
+
+- Inicio
+- Catalogo
+- Carrito
+- Pasarela de Pago y Confirmacion de Compra en Paypal
+- Inicio de Sesion
+- Registro
+- Perfil de Usuario
+
+Administrador
+
+- Perfil de Administrador
+- Productos
+- Usuarios
+- Transacciones
+- Ventas de Productos
