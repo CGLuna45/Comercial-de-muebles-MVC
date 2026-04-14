@@ -99,6 +99,30 @@ class Security extends \Dao\Table
         return self::obtenerUnRegistro($sqlstr, $params);
     }
 
+    static public function setActiveSessionToken($usercod, $token)
+    {
+        $sqlstr = "UPDATE `usuario` SET `useractcod` = :useractcod WHERE `usercod` = :usercod;";
+        $params = array(
+            "useractcod" => $token,
+            "usercod" => $usercod
+        );
+
+        return self::executeNonQuery($sqlstr, $params);
+    }
+
+    static public function getActiveSessionToken($usercod)
+    {
+        $sqlstr = "SELECT `useractcod` FROM `usuario` WHERE `usercod` = :usercod LIMIT 1;";
+        $params = array("usercod" => $usercod);
+        $record = self::obtenerUnRegistro($sqlstr, $params);
+        return $record["useractcod"] ?? "";
+    }
+
+    static public function clearActiveSessionToken($usercod)
+    {
+        return self::setActiveSessionToken($usercod, "");
+    }
+
     static public function updateUsuarioNombre($usercod, $username)
     {
         $sqlstr = "UPDATE `usuario` SET `username` = :username WHERE `usercod` = :usercod;";
