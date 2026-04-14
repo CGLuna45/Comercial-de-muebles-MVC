@@ -326,7 +326,7 @@ foreach ($_SESSION['cart'] as $item) {
         <a href="catalogo.php">Catálogo</a>
         <a href="carrito.php">🛒 Carrito <span class="badge"><?php echo $cart_count; ?></span></a>
         <?php if ($isLogged) { ?>
-            <span style="color: var(--cedro); font-weight:700;">Hola, <?php echo htmlspecialchars($userName); ?></span>
+            <a href="index.php?page=Security_Perfil" style="color: var(--cedro); font-weight:700; text-decoration:none;">Hola, <?php echo htmlspecialchars($userName); ?></a>
             <a href="index.php?page=Sec_Logout">Cerrar Sesión</a>
         <?php } else { ?>
             <a href="index.php?page=Sec_Login"><i class="fas fa-sign-in-alt"></i>&nbsp;Iniciar Sesión</a>
