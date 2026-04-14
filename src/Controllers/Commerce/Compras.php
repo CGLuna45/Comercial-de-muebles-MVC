@@ -4,8 +4,10 @@ namespace Controllers\Commerce;
 
 use Controllers\PrivateController;
 use Dao\Commerce\Compras as DaoCompras;
+use Dao\Products\Products as ProductsDao;
 use Utilities\Context;
 use Utilities\Paging;
+use Utilities\Site;
 use Views\Renderer;
 
 class Compras extends PrivateController
@@ -18,6 +20,13 @@ class Compras extends PrivateController
 
     public function run(): void
     {
+        if ($this->isPostBack()) {
+            $action = $_POST['action'] ?? '';
+            if ($action === 'updateStock') {
+                $this->updateStock();
+            }
+        }
+
         $this->getParamsFromContext();
         $this->getParams();
 
@@ -54,6 +63,23 @@ class Compras extends PrivateController
         );
 
         Renderer::render('commerce/compras', $this->viewData);
+    }
+
+    private function updateStock(): void
+    {
+        $productId = intval($_POST['productId'] ?? 0);
+        $newStock = intval($_POST['newStock'] ?? -1);
+
+        if ($productId <= 0 || $newStock < 0) {
+            Site::redirectToWithMsg('index.php?page=Commerce_Compras', 'No se pudo actualizar el stock.');
+        }
+
+        $result = ProductsDao::updateProductStock($productId, $newStock);
+        if ($result > 0) {
+            Site::redirectToWithMsg('index.php?page=Commerce_Compras', 'Stock actualizado exitosamente.');
+        }
+
+        Site::redirectToWithMsg('index.php?page=Commerce_Compras', 'No se pudo actualizar el stock.');
     }
 
     private function getParams(): void

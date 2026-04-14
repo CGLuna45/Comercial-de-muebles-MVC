@@ -61,8 +61,8 @@
   </a>
   <a href="index.php?page=Commerce_Compras" class="dash-card">
     <div class="icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M7 4h10l1 4h2a1 1 0 0 1 1 1v1H2V9a1 1 0 0 1 1-1h2l2-4zm-2 7l1 8h12l1-8H5zm4 2h2v4H9v-4zm4 0h2v4h-2v-4z"/></svg></div>
-    <h3>Compras de stock</h3>
-    <p>Consultá necesidades de abastecimiento segun inventario.</p>
-    <span class="arrow">Ver compras →</span>
+    <h3>Ventas</h3>
+    <p>Consultá el historial de ventas por producto e inventario actual.</p>
+    <span class="arrow">Ver ventas →</span>
   </a>
 </div>

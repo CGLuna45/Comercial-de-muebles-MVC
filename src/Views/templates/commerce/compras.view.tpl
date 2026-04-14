@@ -26,10 +26,35 @@
   .tabla-wrapper tbody tr { border-bottom: 1px solid #f0ece8; }
   .tabla-wrapper tbody td { padding: 0.9rem 1.2rem; font-size: 0.95rem; }
   .right { text-align: right; }
+  .stock-form {
+    display: flex;
+    gap: 0.5rem;
+    align-items: center;
+    justify-content: flex-end;
+    flex-wrap: wrap;
+  }
+  .stock-form input {
+    width: 90px;
+    border: 1px solid #ddd;
+    border-radius: 10px;
+    padding: 0.45rem 0.6rem;
+    text-align: right;
+  }
+  .btn-stock {
+    background: var(--dorado);
+    color: #fff;
+    border: none;
+    padding: 0.5rem 0.8rem;
+    border-radius: 999px;
+    font-weight: 700;
+    cursor: pointer;
+    font-size: 0.82rem;
+  }
+  .btn-stock:hover { background: var(--cedro); }
 </style>
 
 <div class="crud-header">
-  <h2>Compras de Stock</h2>
+  <h2>Ventas</h2>
 </div>
 
 <form class="filtros" action="index.php" method="get">
@@ -60,6 +85,7 @@
         <th class="right">Precio</th>
         <th class="right">Stock actual</th>
         <th class="right">Cantidades vendidas</th>
+        <th class="right">Control stock</th>
       </tr>
     </thead>
     <tbody>
@@ -70,6 +96,14 @@
         <td class="right">L {{precio}}</td>
         <td class="right">{{stock}}</td>
         <td class="right">{{cantidadesVendidas}}</td>
+        <td class="right">
+          <form method="post" action="index.php?page=Commerce_Compras" class="stock-form">
+            <input type="hidden" name="action" value="updateStock">
+            <input type="hidden" name="productId" value="{{productId}}">
+            <input type="number" name="newStock" min="0" value="{{stock}}">
+            <button type="submit" class="btn-stock">Guardar</button>
+          </form>
+        </td>
       </tr>
       {{endfor purchases}}
     </tbody>
@@ -79,5 +113,5 @@
 {{endif totalPurchases}}
 
 {{ifnot totalPurchases}}
-<div class="tabla-wrapper" style="padding:1.5rem;">No hay productos para mostrar en compras de stock.</div>
+<div class="tabla-wrapper" style="padding:1.5rem;">No hay productos para mostrar en ventas.</div>
 {{endifnot totalPurchases}}

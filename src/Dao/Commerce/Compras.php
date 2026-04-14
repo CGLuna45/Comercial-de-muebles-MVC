@@ -3,6 +3,7 @@
 namespace Dao\Commerce;
 
 use Dao\Table;
+use Dao\Products\Products as ProductsDao;
 
 class Compras extends Table
 {
@@ -12,52 +13,55 @@ class Compras extends Table
         int $page = 0,
         int $itemsPerPage = 10
     ): array {
+        ProductsDao::syncLegacyProducts();
+
         $sql = "SELECT
-                    p.id AS productId,
-                    p.nombre AS productName,
-                    p.categoria,
-                    p.precio,
-                    p.stock,
+                    p.productId AS productId,
+                    p.productName AS productName,
+                    COALESCE(c.categoriaNombre, 'General') AS categoria,
+                    p.productPrice AS precio,
+                    p.productStock AS stock,
                     COALESCE(v.totalVendidas, 0) AS cantidadesVendidas
-                FROM productos p
+                FROM products p
+                LEFT JOIN categorias c
+                    ON c.categoriaId = p.categoriaId
                 LEFT JOIN (
                     SELECT
                         td.productId,
                         SUM(td.transDetalleCantidad) AS totalVendidas
                     FROM transacciones_detalle td
-                    INNER JOIN transacciones t
-                        ON t.transaccionId = td.transaccionId
-                    WHERE t.transaccionStatus IN ('PAG', 'COM', 'ACT')
                     GROUP BY td.productId
-                ) v ON v.productId = p.id
+                ) v ON v.productId = p.productId
                 WHERE 1=1 ";
         $countSql = "SELECT COUNT(*) AS total
-                FROM productos p
+                FROM products p
+                LEFT JOIN categorias c
+                    ON c.categoriaId = p.categoriaId
                 WHERE 1=1 ";
         $params = [];
 
         if ($partial !== "") {
-            $sql .= " AND (p.nombre LIKE :partial OR p.categoria LIKE :partial OR CAST(p.id AS CHAR) LIKE :partial) ";
-            $countSql .= " AND (p.nombre LIKE :partial OR p.categoria LIKE :partial OR CAST(p.id AS CHAR) LIKE :partial) ";
+            $sql .= " AND (p.productName LIKE :partial OR c.categoriaNombre LIKE :partial OR CAST(p.productId AS CHAR) LIKE :partial) ";
+            $countSql .= " AND (p.productName LIKE :partial OR c.categoriaNombre LIKE :partial OR CAST(p.productId AS CHAR) LIKE :partial) ";
             $params["partial"] = "%" . $partial . "%";
         }
 
         if (in_array($status, ["AGO", "BAJ", "OK"])) {
             if ($status === "AGO") {
-                $sql .= " AND p.stock <= 0 ";
-                $countSql .= " AND p.stock <= 0 ";
+                $sql .= " AND p.productStock <= 0 ";
+                $countSql .= " AND p.productStock <= 0 ";
             }
             if ($status === "BAJ") {
-                $sql .= " AND p.stock > 0 AND p.stock <= 5 ";
-                $countSql .= " AND p.stock > 0 AND p.stock <= 5 ";
+                $sql .= " AND p.productStock > 0 AND p.productStock <= 5 ";
+                $countSql .= " AND p.productStock > 0 AND p.productStock <= 5 ";
             }
             if ($status === "OK") {
-                $sql .= " AND p.stock > 5 ";
-                $countSql .= " AND p.stock > 5 ";
+                $sql .= " AND p.productStock > 5 ";
+                $countSql .= " AND p.productStock > 5 ";
             }
         }
 
-        $sql .= " ORDER BY p.stock ASC, p.id ASC";
+        $sql .= " ORDER BY p.productStock ASC, p.productId ASC";
 
         $totalResult = self::obtenerUnRegistro($countSql, $params);
         $total = intval($totalResult["total"] ?? 0);
