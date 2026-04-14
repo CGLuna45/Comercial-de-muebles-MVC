@@ -8,6 +8,7 @@ use Dao\Security\Roles as DaoRoles;
 use Utilities\Site;
 use Utilities\Validators;
 
+// CRUD de rol de seguridad
 class Rol extends PrivateController
 {
     private $viewData = [];
@@ -29,8 +30,12 @@ class Rol extends PrivateController
         "rolesest" => "ACT"
     ];
 
+    // =============================
+    // RUN
+    // =============================
     public function run(): void
     {
+        // Controla ciclo CRUD de un rol
         try {
             $this->getData();
             if ($this->isPostBack() && $this->validateData()) {
@@ -46,8 +51,12 @@ class Rol extends PrivateController
         }
     }
 
+    // =============================
+    // GETDATA
+    // =============================
     private function getData(): void
     {
+        // Carga datos de rol segaUn modo de operacion
         $this->mode = $_GET["mode"] ?? "NOF";
 
         if (!isset($this->modeDescriptions[$this->mode])) {
@@ -66,8 +75,12 @@ class Rol extends PrivateController
         }
     }
 
+    // =============================
+    // VALIDATEDATA
+    // =============================
     private function validateData(): bool
     {
+        // Valida campos requeridos del rol
         $errors = [];
 
         $this->rol["rolescod"] = trim($_POST["rolescod"] ?? "");
@@ -93,8 +106,12 @@ class Rol extends PrivateController
         return true;
     }
 
+    // =============================
+    // HANDLEPOST
+    // =============================
     private function handlePost(): void
     {
+        // Ejecuta INS/UPD/DEL segaUn modo seleccionado
         switch ($this->mode) {
             case "INS":
                 DaoRoles::insertRole(
@@ -121,12 +138,16 @@ class Rol extends PrivateController
         }
     }
 
+    // =============================
+    // SETVIEWDATA
+    // =============================
     private function setViewData(): void
     {
         $this->viewData["FormTitle"] = sprintf($this->modeDescriptions[$this->mode], $this->rol["rolescod"]);
         $this->viewData["readonly"] = $this->readonly;
         $this->viewData["showCommitBtn"] = $this->showCommitBtn;
 
+        // Prepara variables para formulario de rol
         // Variables para el select de estado
         $estadoKey = "rolesest_" . strtolower($this->rol["rolesest"]);
         $this->rol[$estadoKey] = "selected";

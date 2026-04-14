@@ -4,10 +4,15 @@ namespace Dao\Products;
 
 use Dao\Table;
 
+// DAO principal de productos con sincronizaciaIn legacy y reglas de stock/estado
 class Products extends Table
 {
+    // =============================
+    // NORMALIZEPRODUCTROW
+    // =============================
     private static function normalizeProductRow(?array $product): ?array
     {
+        // Unifica estructura entre registros legacy y canonicos
         if (!$product) {
             return null;
         }
@@ -28,8 +33,12 @@ class Products extends Table
         ];
     }
 
+    // =============================
+    // ENSUREFALLBACKCATEGORYID
+    // =============================
     private static function ensureFallbackCategoryId(): int
     {
+        // Obtiene una categoria activa base, o la crea si falta
         $category = self::obtenerUnRegistro(
             "SELECT categoriaId FROM categorias WHERE categoriaStatus = 'ACT' ORDER BY categoriaId ASC LIMIT 1",
             []
@@ -48,8 +57,12 @@ class Products extends Table
         return 1;
     }
 
+    // =============================
+    // ENSURELEGACYCATEGORYRECORDS
+    // =============================
     private static function ensureLegacyCategoryRecords(): void
     {
+        // Crea categorias faltantes detectadas en la tabla legacy
         $sqlstr = "INSERT INTO categorias (categoriaNombre, categoriaDescripcion, categoriaStatus)
                    SELECT DISTINCT
                         p.categoria,
@@ -66,12 +79,16 @@ class Products extends Table
         self::executeNonQuery($sqlstr, []);
     }
 
+    // =============================
+    // SYNCLEGACYPRODUCTS
+    // =============================
     public static function syncLegacyProducts(): void
     {
+        // Asegura categorias y productos legacy dentro del catalogo canaInico
         self::ensureLegacyCategoryRecords();
         $fallbackCategoryId = self::ensureFallbackCategoryId();
 
-                // Keep category aligned with legacy source without overriding stock adjustments.
+                // Keep category aligned with legacy source without overriding stock adjustments
                 $updateCategorySql = "UPDATE products p
                                                             INNER JOIN productos lp
                                                                 ON lp.id = p.productId
@@ -82,7 +99,7 @@ class Products extends Table
                                                             WHERE p.categoriaId <> c.categoriaId";
                 self::executeNonQuery($updateCategorySql, []);
 
-            // Keep status consistent with current stock levels.
+            // Keep status consistent with current stock levels
             $syncStatusSql = "UPDATE products
                       SET productStatus = CASE WHEN productStock > 0 THEN 'ACT' ELSE 'INA' END
                       WHERE productStatus <> CASE WHEN productStock > 0 THEN 'ACT' ELSE 'INA' END";
@@ -125,6 +142,9 @@ class Products extends Table
         self::executeNonQuery($sqlstr, ["fallbackCategoryId" => $fallbackCategoryId]);
     }
 
+    // =============================
+    // GETPRODUCTS
+    // =============================
     public static function getProducts(
         string $partialName = "",
         string $status = "",
@@ -134,6 +154,7 @@ class Products extends Table
         int $itemsPerPage = 10,
         int $categoriaId = 0
     ) {
+        // Devuelve listado de productos para panel administrativo
         self::syncLegacyProducts();
 
         $legacyCount = self::obtenerUnRegistro("SELECT COUNT(*) AS count FROM products", [])["count"] ?? 0;
@@ -246,8 +267,12 @@ class Products extends Table
         return ["products" => $registros, "total" => $numeroDeRegistros, "page" => $page, "itemsPerPage" => $itemsPerPage];
     }
 
+    // =============================
+    // GETPRODUCTBYID
+    // =============================
     public static function getProductById(int $productId)
     {
+        // Obtiene un producto por ID, con fallback a tabla legacy
         $sqlstr = "SELECT productId, categoriaId, productName, productDescription, productPrice, productStock, productImgUrl, productStatus
                    FROM products
                    WHERE productId = :productId
@@ -267,8 +292,12 @@ class Products extends Table
         return self::normalizeProductRow($legacyProduct);
     }
 
+    // =============================
+    // DECREMENTPRODUCTSTOCK
+    // =============================
     public static function decrementProductStock(int $productId, int $quantity)
     {
+        // Descuenta stock de forma segura y actualiza estado segaUn disponibilidad
         $sqlstr = "UPDATE products
             SET productStock = productStock - :quantity,
                 productStatus = CASE WHEN (productStock - :quantity) > 0 THEN 'ACT' ELSE 'INA' END
@@ -282,6 +311,9 @@ class Products extends Table
         return self::executeNonQuery($sqlstr, $params);
     }
 
+    // =============================
+    // INSERTPRODUCT
+    // =============================
     public static function insertProduct(
         int $categoriaId,
         string $productName,
@@ -290,6 +322,7 @@ class Products extends Table
         string $productImgUrl,
         string $productStatus
     ) {
+        // Inserta producto nuevo; estado queda gobernado por stock
         $sqlstr = "INSERT INTO products (categoriaId, productName, productDescription, productPrice, productImgUrl, productStatus)
                    VALUES (:categoriaId, :productName, :productDescription, :productPrice, :productImgUrl, 'INA')";
         $params = [
@@ -302,6 +335,9 @@ class Products extends Table
         return self::executeNonQuery($sqlstr, $params);
     }
 
+    // =============================
+    // UPDATEPRODUCT
+    // =============================
     public static function updateProduct(
         int $productId,
         int $categoriaId,
@@ -311,6 +347,7 @@ class Products extends Table
         string $productImgUrl,
         string $productStatus
     ) {
+        // Actualiza datos editables del producto
         $sqlstr = "UPDATE products
                    SET categoriaId = :categoriaId,
                        productName = :productName,
@@ -330,8 +367,12 @@ class Products extends Table
         return self::executeNonQuery($sqlstr, $params);
     }
 
+    // =============================
+    // UPDATEPRODUCTSTOCK
+    // =============================
     public static function updateProductStock(int $productId, int $productStock)
     {
+        // Ajusta stock manual y sincroniza estado activo/inactivo
         $sqlstr = "UPDATE products
                    SET productStock = :productStock,
                        productStatus = CASE WHEN :productStock > 0 THEN 'ACT' ELSE 'INA' END
@@ -344,29 +385,45 @@ class Products extends Table
         return self::executeNonQuery($sqlstr, $params);
     }
 
+    // =============================
+    // DELETEPRODUCT
+    // =============================
     public static function deleteProduct(int $productId)
     {
+        // Elimina producto por clave primaria
         $sqlstr = "DELETE FROM products WHERE productId = :productId";
         $params = ["productId" => $productId];
         return self::executeNonQuery($sqlstr, $params);
     }
 
+    // =============================
+    // GETFEATUREDPRODUCTS
+    // =============================
     public static function getFeaturedProducts()
     {
+        // Consulta productos destacados vigentes
         $sqlstr = "SELECT p.productId, p.productName, p.productDescription, p.productPrice, p.productImgUrl, p.productStatus FROM products p INNER JOIN highlights h ON p.productId = h.productId WHERE h.highlightStart <= NOW() AND h.highlightEnd >= NOW()";
         $params = [];
         return self::obtenerRegistros($sqlstr, $params);
     }
 
+    // =============================
+    // GETNEWPRODUCTS
+    // =============================
     public static function getNewProducts()
     {
+        // Consulta ultimos productos activos para home
         $sqlstr = "SELECT p.productId, p.productName, p.productDescription, p.productPrice, p.productImgUrl, p.productStatus FROM products p WHERE p.productStatus = 'ACT' ORDER BY p.productId DESC LIMIT 3";
         $params = [];
         return self::obtenerRegistros($sqlstr, $params);
     }
 
+    // =============================
+    // GETDAILYDEALS
+    // =============================
     public static function getDailyDeals()
     {
+        // Consulta ofertas activas con precio promocional
         $sqlstr = "SELECT p.productId, p.productName, p.productDescription, s.salePrice as productPrice, p.productImgUrl, p.productStatus FROM products p INNER JOIN sales s ON p.productId = s.productId WHERE s.saleStart <= NOW() AND s.saleEnd >= NOW()";
         $params = [];
         return self::obtenerRegistros($sqlstr, $params);

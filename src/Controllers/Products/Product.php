@@ -9,6 +9,7 @@ use Dao\Products\Categorias as CategoriasDao;
 use Utilities\Site;
 use Utilities\Validators;
 
+// Controlador CRUD de un producto individual
 class Product extends PrivateController
 {
     private $viewData = [];
@@ -32,8 +33,12 @@ class Product extends PrivateController
     ];
     private $product_xss_token = "";
 
+    // =============================
+    // RUN
+    // =============================
     public function run(): void
     {
+        // Maneja ciclo de vida del formulario de producto por modo
         try {
             $this->getData();
             if ($this->isPostBack()) {
@@ -51,8 +56,12 @@ class Product extends PrivateController
         }
     }
 
+    // =============================
+    // GETDATA
+    // =============================
     private function getData()
     {
+        // Carga modo y datos del producto si aplica
         $this->mode = $_GET["mode"] ?? "NOF";
         if (isset($this->modeDescriptions[$this->mode])) {
             $this->readonly = $this->mode === "DEL" ? "readonly" : "";
@@ -69,8 +78,12 @@ class Product extends PrivateController
         $this->viewData["categorias"] = CategoriasDao::getAll();
     }
 
+    // =============================
+    // VALIDATEDATA
+    // =============================
     private function validateData()
     {
+        // Valida entradas del formulario segaUn modo actual
         $errors = [];
         $this->product_xss_token = $_POST["product_xss_token"] ?? "";
         $this->product["productId"] = intval($_POST["productId"] ?? "");
@@ -81,6 +94,7 @@ class Product extends PrivateController
         $this->product["productImgUrl"] = strval($_POST["productImgUrl"] ?? "");
         $this->product["productStatus"] = strval($_POST["productStatus"] ?? "");
 
+        // En eliminaciaIn solo se requiere el ID, aunque inputs estaon deshabilitados
         if ($this->mode === "DEL") {
             return $this->product["productId"] > 0;
         }
@@ -110,8 +124,12 @@ class Product extends PrivateController
         return true;
     }
 
+    // =============================
+    // HANDLEPOSTACTION
+    // =============================
     private function handlePostAction()
     {
+        // Redirige al proceso especifico de INS/UPD/DEL
         switch ($this->mode) {
             case "INS":
                 $this->handleInsert();
@@ -128,8 +146,12 @@ class Product extends PrivateController
         }
     }
 
+    // =============================
+    // HANDLEINSERT
+    // =============================
     private function handleInsert()
     {
+        // Inserta nuevo producto y redirige al listado
         $result = ProductsDao::insertProduct(
             $this->product["categoriaId"],
             $this->product["productName"],
@@ -146,8 +168,12 @@ class Product extends PrivateController
         }
     }
 
+    // =============================
+    // HANDLEUPDATE
+    // =============================
     private function handleUpdate()
 {
+    // Actualiza producto existente
     $result = ProductsDao::updateProduct(
         $this->product["productId"],
         $this->product["categoriaId"],
@@ -165,8 +191,12 @@ class Product extends PrivateController
     }
 }
 
+    // =============================
+    // HANDLEDELETE
+    // =============================
     private function handleDelete()
     {
+        // Elimina producto por ID
         $result = ProductsDao::deleteProduct($this->product["productId"]);
         if ($result > 0) {
             Site::redirectToWithMsg(
@@ -176,8 +206,12 @@ class Product extends PrivateController
         }
     }
 
+    // =============================
+    // SETVIEWDATA
+    // =============================
     private function setViewData(): void
     {
+        // Prepara datos y marcas seleccionadas para la vista
         $this->viewData["mode"] = $this->mode;
         $this->viewData["product_xss_token"] = $this->product_xss_token;
         $productId = intval($this->product["productId"] ?? 0);

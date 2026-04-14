@@ -4,10 +4,15 @@ namespace Dao\Security;
 
 use Dao\Table;
 
+// DAO de usuarios para CRUD y filtros del panel de seguridad
 class Users extends Table
 {
+    // =============================
+    // GETALLUSERS
+    // =============================
     public static function getAllUsers(): array
     {
+        // Lista usuarios con rol efectivo para el panel
         $sql = "SELECT 
                     u.usercod,
                     u.username,
@@ -20,8 +25,12 @@ class Users extends Table
         return self::obtenerRegistros($sql, []);
     }
 
+    // =============================
+    // GETUSERBYID
+    // =============================
     public static function getUserById(int $usercod): array|false
     {
+        // Consulta un usuario por ID con su rol efectivo
         $sql = "SELECT 
                     u.usercod,
                     u.username,
@@ -35,6 +44,9 @@ class Users extends Table
         return self::obtenerUnRegistro($sql, $params);
     }
 
+    // =============================
+    // INSERTUSER
+    // =============================
     public static function insertUser(
         string $username,
         string $useremail,
@@ -47,6 +59,7 @@ class Users extends Table
         string $userpswdchg,
         string $usertipo
     ): int {
+        // Inserta un usuario nuevo en tabla usuario
 
         $sql = "INSERT INTO usuario 
             (username, useremail, userpswd, userfching, userpswdest, userpswdexp, userest, useractcod, userpswdchg, usertipo)
@@ -71,6 +84,9 @@ class Users extends Table
         return self::getLastInsertId();
     }
 
+    // =============================
+    // UPDATEUSER
+    // =============================
     public static function updateUser(
         int $usercod,
         string $username,
@@ -84,6 +100,7 @@ class Users extends Table
         string $userpswdchg,
         string $usertipo
     ): int {
+        // Actualiza datos baesicos del usuario
 
         $sql = "UPDATE usuario SET
         username = :username,
@@ -103,15 +120,23 @@ class Users extends Table
         return self::executeNonQuery($sql, $params);
     }
 
+    // =============================
+    // DELETEUSER
+    // =============================
     public static function deleteUser(int $usercod): int
     {
+        // Elimina usuario por clave primaria
         $sql = "DELETE FROM usuario WHERE usercod = :usercod";
         $params = ["usercod" => $usercod];
         return self::executeNonQuery($sql, $params);
     }
 
+    // =============================
+    // SEARCHUSERS
+    // =============================
     public static function searchUsers(string $partialName = "", string $status = "", string $usertipo = ""): array
     {
+        // Ejecuta busqueda dinaemica por nombre, estado y tipo
         $sql = "SELECT 
                     u.usercod,
                     u.username,

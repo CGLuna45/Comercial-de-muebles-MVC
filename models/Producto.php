@@ -1,13 +1,22 @@
 <?php
+// Modelo del catalogo publico legacy sobre tabla products/categorias
 class Producto {
     private $db;
 
+    // =============================
+    // __CONSTRUCT
+    // =============================
     public function __construct($conexion) {
+        // Guarda la conexion para consultas del catalogo
         $this->db = $conexion;
     }
 
     // Obtener todos los productos
+    // =============================
+    // OBTENERTODOS
+    // =============================
     public function obtenerTodos() {
+        // Devuelve catalogo activo con stock disponible
         $sql = "SELECT
                     p.productId AS id,
                     p.productName AS nombre,
@@ -23,8 +32,12 @@ class Producto {
         return $this->db->query($sql);
     }
 
-    // Buscar productos por nombre o categoría
+    // Buscar productos por nombre o categoria
+    // =============================
+    // BUSCAR
+    // =============================
     public function buscar($search) {
+        // Aplica busqueda parcial por nombre o categoria
         $search = $this->db->real_escape_string($search);
         $sql = "SELECT
                     p.productId AS id,
@@ -42,8 +55,12 @@ class Producto {
         return $this->db->query($sql);
     }
 
-    // Filtrar por categoría
+    // Filtrar por categoria
+    // =============================
+    // FILTRARPORCATEGORIA
+    // =============================
     public function filtrarPorCategoria($categoria) {
+        // Devuelve solo productos activos de una categoria
         $categoria = $this->db->real_escape_string($categoria);
         $sql = "SELECT
                     p.productId AS id,
@@ -61,8 +78,12 @@ class Producto {
         return $this->db->query($sql);
     }
 
-    // Buscar + categoría
+    // Buscar + categoria
+    // =============================
+    // BUSCARYCATEGORIA
+    // =============================
     public function buscarYCategoria($search, $categoria) {
+        // Combina filtro por texto y categoria
         $search = $this->db->real_escape_string($search);
         $categoria = $this->db->real_escape_string($categoria);
 
@@ -84,7 +105,11 @@ class Producto {
     }
 
     // Obtener producto por ID
+    // =============================
+    // OBTENERPORID
+    // =============================
     public function obtenerPorId($id) {
+        // Consulta un producto especifico para operaciones puntuales
         $id = intval($id);
         $sql = "SELECT
                     p.productId AS id,

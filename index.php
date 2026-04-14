@@ -1,6 +1,8 @@
 <?php
 session_start();
 
+// Entrada principal: enruta al MVC cuando llega ?page=..., o muestra portada paUblica
+
 // Router MVC: si viene page=..., ejecuta el controlador
 if (isset($_GET['page']) && trim($_GET['page']) !== '') {
     require __DIR__.'/vendor/autoload.php';
@@ -32,7 +34,7 @@ if (isset($_GET['page']) && trim($_GET['page']) !== '') {
     }
 }
 
-// Si no hay page=, mostrar portada estática
+// Si no hay page=, mostrar portada estatica
 $cart_count = 0;
 if (isset($_SESSION['cart'])) {
     foreach ($_SESSION['cart'] as $item) {
@@ -40,7 +42,7 @@ if (isset($_SESSION['cart'])) {
     }
 }
 
-// Variables de sesión para mostrar en HTML
+// Variables de sesion para mostrar en HTML
 $isLogged = isset($_SESSION['login']) && $_SESSION['login']['isLogged'];
 $userName = $_SESSION['userName'] ?? '';
 $userEmail = $_SESSION['userEmail'] ?? '';

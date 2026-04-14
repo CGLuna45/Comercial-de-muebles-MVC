@@ -1,6 +1,8 @@
 <?php
 session_start();
 
+// Resumen previo al pago simulado (flujo legacy con datos de sesion)
+
 $subtotal = 0;
 $cantidadTotal = 0;
 

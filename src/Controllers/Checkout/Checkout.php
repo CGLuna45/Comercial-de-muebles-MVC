@@ -6,8 +6,12 @@ use Controllers\PublicController;
 
 class Checkout extends PublicController
 {
+    // =============================
+    // RUN
+    // =============================
     public function run(): void
     {
+        // Prepara resumen y crea la orden de PayPal
         if (!\Utilities\Security::isLogged()) {
             $redirTo = urlencode('index.php?page=Checkout_Checkout');
             \Utilities\Site::redirectTo('index.php?page=Sec_Login&redirto='.$redirTo);
@@ -93,8 +97,12 @@ class Checkout extends PublicController
         \Views\Renderer::render('paypal/checkout', $viewData);
     }
 
+    // =============================
+    // GETSESSIONCARTITEMS
+    // =============================
     private function getSessionCartItems(): array
     {
+        // Normaliza el formato del carrito para pasarlo al checkout
         $cart = $_SESSION['cart'] ?? [];
         $items = [];
         foreach ($cart as $item) {
@@ -115,8 +123,12 @@ class Checkout extends PublicController
         return $items;
     }
 
+    // =============================
+    // GETBASEURL
+    // =============================
     private function getBaseUrl(): string
     {
+        // Construye URL base para callbacks de PayPal
         $https = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off');
         $scheme = $https ? 'https' : 'http';
         $host = $_SERVER['HTTP_HOST'] ?? 'localhost';
@@ -128,11 +140,16 @@ class Checkout extends PublicController
         return $scheme.'://'.$host.$scriptDir.'/';
     }
 
+    // =============================
+    // NORMALIZESESSIONCART
+    // =============================
     private function normalizeSessionCart(): void
     {
+        // Limpia items invalidos y ajusta cantidades al stock vigente
         $sessionCart = $_SESSION['cart'] ?? [];
         if (!is_array($sessionCart) || empty($sessionCart)) {
             $_SESSION['cart'] = [];
+
             return;
         }
 

@@ -18,8 +18,12 @@ class Compras extends PrivateController
     private $itemsPerPage = 10;
     private $viewData = [];
 
+    // =============================
+    // RUN
+    // =============================
     public function run(): void
     {
+        // Renderiza el maIdulo de ventas con filtros y paginacion
         if ($this->isPostBack()) {
             $action = $_POST['action'] ?? '';
             if ($action === 'updateStock') {
@@ -65,8 +69,12 @@ class Compras extends PrivateController
         Renderer::render('commerce/compras', $this->viewData);
     }
 
+    // =============================
+    // UPDATESTOCK
+    // =============================
     private function updateStock(): void
     {
+        // Actualiza stock de un producto desde la tabla de ventas
         $productId = intval($_POST['productId'] ?? 0);
         $newStock = intval($_POST['newStock'] ?? -1);
 
@@ -82,8 +90,12 @@ class Compras extends PrivateController
         Site::redirectToWithMsg('index.php?page=Commerce_Compras', 'No se pudo actualizar el stock.');
     }
 
+    // =============================
+    // GETPARAMS
+    // =============================
     private function getParams(): void
     {
+        // Lee filtros y paginacion desde querystring
         $this->partial = $_GET['partial'] ?? $this->partial;
         $this->status = $_GET['status'] ?? $this->status;
         if ($this->status === 'EMP') {
@@ -99,8 +111,12 @@ class Compras extends PrivateController
         }
     }
 
+    // =============================
+    // GETPARAMSFROMCONTEXT
+    // =============================
     private function getParamsFromContext(): void
     {
+        // Recupera filtros persistidos en contexto de navegaciaIn
         $this->partial = Context::getContextByKey('purchases_partial');
         $this->status = Context::getContextByKey('purchases_status');
         $this->pageNumber = intval(Context::getContextByKey('purchases_page'));
@@ -113,8 +129,12 @@ class Compras extends PrivateController
         }
     }
 
+    // =============================
+    // SETPARAMSTOCONTEXT
+    // =============================
     private function setParamsToContext(): void
     {
+        // Guarda filtros actuales para mantener estado entre pantallas
         Context::setContext('purchases_partial', $this->partial, true);
         Context::setContext('purchases_status', $this->status, true);
         Context::setContext('purchases_page', $this->pageNumber, true);

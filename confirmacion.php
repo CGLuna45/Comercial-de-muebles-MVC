@@ -2,6 +2,8 @@
 session_start();
 require_once 'db.php';
 
+// Muestra el comprobante de una transaccion ya registrada
+
 if (!isset($_GET['id'])) {
     header("Location: carrito.php");
     exit;

@@ -24,8 +24,12 @@ use Exception;
 
 class Security extends \Dao\Table
 {
+    // =============================
+    // GETUSUARIOS
+    // =============================
     static public function getUsuarios($filter = "", $page = -1, $items = 0)
     {
+        // Lista usuarios con opciaIn baesica de filtro/paginacion
         $sqlstr = "";
         if ($filter == "" && $page == -1 && $items == 0) {
             $sqlstr = "SELECT * FROM usuario;";
@@ -46,8 +50,12 @@ class Security extends \Dao\Table
         return self::obtenerRegistros($sqlstr, array());
     }
 
+    // =============================
+    // NEWUSUARIO
+    // =============================
     static public function newUsuario($email, $password)
     {
+        // Crea usuario nuevo con validaciaIn y hash de contrasena
         if (!\Utilities\Validators::IsValidEmail($email)) {
             throw new Exception("Correo no es válido");
         }
@@ -56,7 +64,7 @@ class Security extends \Dao\Table
         }
 
         $newUser = self::_usuarioStruct();
-        //Tratamiento de la Contraseña
+        //Tratamiento de la ContraseaNa
         $hashedPassword = self::_hashPassword($password);
 
         unset($newUser["usercod"]);
@@ -83,24 +91,36 @@ class Security extends \Dao\Table
         return self::executeNonQuery($sqlIns, $newUser);
     }
 
+    // =============================
+    // GETUSUARIOBYEMAIL
+    // =============================
     static public function getUsuarioByEmail($email)
     {
+        // Busca usuario por correo para autenticaciaIn
         $sqlstr = "SELECT * from `usuario` where `useremail` = :useremail ;";
         $params = array("useremail" => $email);
 
         return self::obtenerUnRegistro($sqlstr, $params);
     }
 
+    // =============================
+    // GETUSUARIOBYID
+    // =============================
     static public function getUsuarioById($usercod)
     {
+        // Busca usuario por ID
         $sqlstr = "SELECT * from `usuario` where `usercod` = :usercod ;";
         $params = array("usercod" => $usercod);
 
         return self::obtenerUnRegistro($sqlstr, $params);
     }
 
+    // =============================
+    // SETACTIVESESSIONTOKEN
+    // =============================
     static public function setActiveSessionToken($usercod, $token)
     {
+        // Guarda token de sesion activa para politica de sesion unica
         $sqlstr = "UPDATE `usuario` SET `useractcod` = :useractcod WHERE `usercod` = :usercod;";
         $params = array(
             "useractcod" => $token,
@@ -110,21 +130,33 @@ class Security extends \Dao\Table
         return self::executeNonQuery($sqlstr, $params);
     }
 
+    // =============================
+    // GETACTIVESESSIONTOKEN
+    // =============================
     static public function getActiveSessionToken($usercod)
     {
+        // Retorna token de sesion activa del usuario
         $sqlstr = "SELECT `useractcod` FROM `usuario` WHERE `usercod` = :usercod LIMIT 1;";
         $params = array("usercod" => $usercod);
         $record = self::obtenerUnRegistro($sqlstr, $params);
         return $record["useractcod"] ?? "";
     }
 
+    // =============================
+    // CLEARACTIVESESSIONTOKEN
+    // =============================
     static public function clearActiveSessionToken($usercod)
     {
+        // Limpia token activo al cerrar sesion
         return self::setActiveSessionToken($usercod, "");
     }
 
+    // =============================
+    // UPDATEUSUARIONOMBRE
+    // =============================
     static public function updateUsuarioNombre($usercod, $username)
     {
+        // Actualiza nombre visible del usuario
         $sqlstr = "UPDATE `usuario` SET `username` = :username WHERE `usercod` = :usercod;";
         $params = array(
             "username" => $username,
@@ -134,8 +166,12 @@ class Security extends \Dao\Table
         return self::executeNonQuery($sqlstr, $params);
     }
 
+    // =============================
+    // _SALTPASSWORD
+    // =============================
     static private function _saltPassword($password)
     {
+        // Aplica sal HMAC antes del hash final
         return hash_hmac(
             "sha256",
             $password,
@@ -143,26 +179,42 @@ class Security extends \Dao\Table
         );
     }
 
+    // =============================
+    // _HASHPASSWORD
+    // =============================
     static private function _hashPassword($password)
     {
+        // Aplica hash bcrypt sobre contrasena salteada
         return password_hash(self::_saltPassword($password), PASSWORD_ALGORITHM);
     }
 
+    // =============================
+    // HASHPASSWORDPUBLIC
+    // =============================
     static public function hashPasswordPublic($password)
     {
+        // Expone hash de contrasena para otros maIdulos
         return self::_hashPassword($password);
     }
 
+    // =============================
+    // VERIFYPASSWORD
+    // =============================
     static public function verifyPassword($raw_password, $hash_password)
     {
+        // Compara contrasena plana contra hash almacenado
         return password_verify(
             self::_saltPassword($raw_password),
             $hash_password
         );
     }
 
+    // =============================
+    // _USUARIOSTRUCT
+    // =============================
     static private function _usuarioStruct()
     {
+        // Plantilla base de campos de usuario
         return array(
             "usercod"     => "",
             "useremail"   => "",
@@ -178,15 +230,23 @@ class Security extends \Dao\Table
         );
     }
 
+    // =============================
+    // GETFEATURE
+    // =============================
     static public function getFeature($fncod)
     {
+        // Verifica existencia de una funcion/permiso
         $sqlstr = "SELECT * from funciones where funcionNombre=:funcionNombre;";
         $featuresList = self::obtenerRegistros($sqlstr, array("funcionNombre" => $fncod));
         return count($featuresList) > 0;
     }
 
+    // =============================
+    // ADDNEWFEATURE
+    // =============================
     static public function addNewFeature($fncod, $fndsc, $fnest, $fntyp)
     {
+        // Registra una funcion nueva en catalogo de permisos
         $sqlins = "INSERT INTO `funciones` (`funcionNombre`, `funcionDescripcion`, `funcionStatus`)
         VALUES (:funcionNombre, :funcionDescripcion, :funcionStatus);";
 
@@ -200,8 +260,12 @@ class Security extends \Dao\Table
         );
     }
 
+    // =============================
+    // GETFEATUREBYUSUARIO
+    // =============================
     static public function getFeatureByUsuario($userCod, $fncod)
     {
+        // Determina si un usuario tiene permiso especifico
         $sqlstr = "SELECT f.funcionId
             FROM funciones f
             INNER JOIN funciones_roles fr ON fr.funcionId = f.funcionId
@@ -222,8 +286,12 @@ class Security extends \Dao\Table
         return count($resultados) > 0;
     }
 
+    // =============================
+    // GETROL
+    // =============================
     static public function getRol($rolescod)
     {
+        // Verifica existencia de rol por ID o nombre
         $params = array();
         if (is_numeric($rolescod)) {
             $sqlstr = "SELECT * from roles where rolId=:rolId;";
@@ -236,8 +304,12 @@ class Security extends \Dao\Table
         return count($rolesList) > 0;
     }
 
+    // =============================
+    // ADDNEWROL
+    // =============================
     static public function addNewRol($rolescod, $rolesdsc, $rolesest)
     {
+        // Registra rol nuevo por codigo numerico o nombre
         if (is_numeric($rolescod)) {
             $sqlins = "INSERT INTO `roles` (`rolId`, `rolNombre`, `rolDescripcion`, `rolStatus`)
             VALUES (:rolId, :rolNombre, :rolDescripcion, :rolStatus);";
@@ -265,8 +337,12 @@ class Security extends \Dao\Table
         );
     }
 
+    // =============================
+    // ISUSUARIOINROL
+    // =============================
     static public function isUsuarioInRol($userCod, $rolescod)
     {
+        // Determina si un usuario pertenece a un rol
         $sqlstr = "SELECT r.rolId
             FROM roles r
             INNER JOIN roles_usuarios ru ON ru.rolId = r.rolId
@@ -285,8 +361,12 @@ class Security extends \Dao\Table
         return count($resultados) > 0;
     }
 
+    // =============================
+    // GETROLESBYUSUARIO
+    // =============================
     static public function getRolesByUsuario($userCod)
     {
+        // Devuelve roles activos asociados al usuario
         $sqlstr = "SELECT r.*
             FROM roles r
             INNER JOIN roles_usuarios ru ON ru.rolId = r.rolId
@@ -302,8 +382,12 @@ class Security extends \Dao\Table
         return $resultados;
     }
 
+    // =============================
+    // REMOVEROLFROMUSER
+    // =============================
     static public function removeRolFromUser($userCod, $rolescod)
     {
+        // Desactiva un rol puntual para el usuario
         $sqldel = "UPDATE roles_usuarios set ruStatus='INA'
         where rolId=:rolId and usuarioId=:usuarioId;";
         return self::executeNonQuery(
@@ -312,8 +396,12 @@ class Security extends \Dao\Table
         );
     }
 
+    // =============================
+    // REMOVEFEATUREFROMROL
+    // =============================
     static public function removeFeatureFromRol($fncod, $rolescod)
     {
+        // Desactiva una funcion asociada a un rol
         $sqldel = "UPDATE funciones_roles fr
             INNER JOIN funciones f ON f.funcionId = fr.funcionId
             SET fr.frStatus='INA'
@@ -324,24 +412,32 @@ class Security extends \Dao\Table
         );
     }
 
-    // ─── NUEVOS MÉTODOS ──────────────────────────────────────────────────────────
+    // ─── NUEVOS METODOS ──────────────────────────────────────────────────────────
 
     /**
-     * Desactiva todos los roles activos de un usuario.
-     * Se llama antes de asignar el nuevo rol para evitar duplicados activos.
+     * Desactiva todos los roles activos de un usuario
+     * Se llama antes de asignar el nuevo rol para evitar duplicados activos
      */
+    // =============================
+    // REMOVEALLROLESFROMUSER
+    // =============================
     static public function removeAllRolesFromUser($userCod)
     {
+        // Desactiva roles activos para reasignaciaIn limpia
         $sql = "UPDATE roles_usuarios SET ruStatus = 'INA' WHERE usuarioId = :usuarioId";
         return self::executeNonQuery($sql, array("usuarioId" => $userCod));
     }
 
     /**
-     * Asigna un rol a un usuario.
-     * Si ya existe el registro lo reactiva; si no, inserta uno nuevo.
+     * Asigna un rol a un usuario
+     * Si ya existe el registro lo reactiva; si no, inserta uno nuevo
      */
+    // =============================
+    // ASSIGNROLTOUSER
+    // =============================
     static public function assignRolToUser($userCod, $rolescod)
     {
+        // Asigna rol; reactiva si ya existaAa registro previo
         $sqlCheck = "SELECT * FROM roles_usuarios WHERE usuarioId = :usuarioId AND rolId = :rolId";
         $exists   = self::obtenerRegistros(
             $sqlCheck,
@@ -369,21 +465,37 @@ class Security extends \Dao\Table
 
     // ─────────────────────────────────────────────────────────────────────────────
 
+    // =============================
+    // GETUNASSIGNEDFEATURES
+    // =============================
     static public function getUnAssignedFeatures($rolescod)
     {
+        // Pendiente: funciones no asignadas al rol
         // TODO: implementar
     }
 
+    // =============================
+    // GETUNASSIGNEDROLES
+    // =============================
     static public function getUnAssignedRoles($userCod)
     {
+        // Pendiente: roles no asignados al usuario
         // TODO: implementar
     }
 
+    // =============================
+    // __CONSTRUCT
+    // =============================
     private function __construct()
     {
+        // Evita instanciacion de clase estatica
     }
 
+    // =============================
+    // __CLONE
+    // =============================
     private function __clone()
     {
+        // Evita clonacion de clase estatica
     }
 }

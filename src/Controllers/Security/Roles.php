@@ -7,14 +7,19 @@ use Views\Renderer;
 use Dao\Security\Roles as DaoRoles;
 use Utilities\Site;
 
+// Listado y filtros de roles
 class Roles extends PrivateController
 {
     private $viewData = [];
 
+    // =============================
+    // RUN
+    // =============================
     public function run(): void
     {
+        // Lista roles con filtros, orden y paginacion
         try {
-            // Obtener parámetros de filtro y paginación
+            // Obtener parametros de filtro y paginacion
             $partialName = $_GET["partialName"] ?? "";
             $status = $_GET["status"] ?? "";
             $orderBy = $this->getOrderBy();
@@ -48,7 +53,7 @@ class Roles extends PrivateController
             // Variables para ordenamiento (similar a productos)
             $this->setOrderVariables();
 
-            // Paginación
+            // PaginaciaIn
             $this->viewData["pagination"] = $this->getPaginationHtml(
                 $result["page"],
                 ceil($result["total"] / $itemsPerPage),
@@ -64,21 +69,33 @@ class Roles extends PrivateController
         }
     }
 
+    // =============================
+    // GETORDERBY
+    // =============================
     private function getOrderBy(): string
     {
+        // Normaliza campo de orden valido
         $allowed = ["rolescod", "rolesdsc", "rolesest"];
         $orderBy = $_GET["orderBy"] ?? "";
         return in_array($orderBy, $allowed) ? $orderBy : "";
     }
 
+    // =============================
+    // GETORDERDESCENDING
+    // =============================
     private function getOrderDescending(): bool
     {
+        // Interpreta bandera descendente desde querystring
         return isset($_GET["orderDescending"]) && $_GET["orderDescending"] === "1";
     }
 
+    // =============================
+    // SETORDERVARIABLES
+    // =============================
     private function setOrderVariables(): void
     {
-        // Para cada columna, definimos variables que indican si está ordenada
+        // Marca estado de orden para cada columna en la vista
+        // Para cada columna, definimos variables que indican si esta ordenada
         $orderBy = $this->getOrderBy();
         $desc = $this->getOrderDescending();
 
@@ -90,8 +107,12 @@ class Roles extends PrivateController
         $this->viewData["OrderByRolesestDesc"] = $orderBy === "rolesest" && $desc;
     }
 
+    // =============================
+    // GETPAGINATIONHTML
+    // =============================
     private function getPaginationHtml(int $currentPage, int $totalPages, string $baseUrl): string
     {
+        // Genera paginador simple para la lista
         if ($totalPages <= 1) return "";
 
         $html = '<div class="pagination">';

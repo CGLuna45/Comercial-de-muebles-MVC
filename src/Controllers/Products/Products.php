@@ -9,6 +9,7 @@ use Dao\Products\Products as DaoProducts;
 use Dao\Products\Categorias as CategoriasDao;
 use Views\Renderer;
 
+// Lista y filtra productos del panel administrativo
 class Products extends PrivateController
 {
     private $partialName = "";
@@ -23,8 +24,12 @@ class Products extends PrivateController
     private $productsCount = 0;
     private $pages = 0;
 
+    // =============================
+    // RUN
+    // =============================
     public function run(): void
     {
+        // Ejecuta listado de productos con filtros persistentes
         $this->getParamsFromContext();
         $this->getParams();
         $tmpProducts = DaoProducts::getProducts(
@@ -47,8 +52,12 @@ class Products extends PrivateController
         Renderer::render("products/products", $this->viewData);
     }
 
+    // =============================
+    // GETPARAMS
+    // =============================
     private function getParams(): void
     {
+        // Lee parametros de busqueda, orden y paginacion
         $this->partialName = isset($_GET["partialName"]) ? $_GET["partialName"] : $this->partialName;
         $this->status = isset($_GET["status"]) && in_array($_GET["status"], ['ACT', 'INA', 'EMP']) ? $_GET["status"] : $this->status;
         if ($this->status === "EMP") {
@@ -64,8 +73,12 @@ class Products extends PrivateController
         $this->itemsPerPage = isset($_GET["itemsPerPage"]) ? intval($_GET["itemsPerPage"]) : $this->itemsPerPage;
     }
 
+    // =============================
+    // GETPARAMSFROMCONTEXT
+    // =============================
     private function getParamsFromContext(): void
     {
+        // Recupera filtros guardados en contexto
         $this->partialName = Context::getContextByKey("products_partialName");
         $this->status = Context::getContextByKey("products_status");
         $this->categoriaId = intval(Context::getContextByKey("products_categoriaId"));
@@ -77,8 +90,12 @@ class Products extends PrivateController
         if ($this->itemsPerPage < 1) $this->itemsPerPage = 10;
     }
 
+    // =============================
+    // SETPARAMSTOCONTEXT
+    // =============================
     private function setParamsToContext(): void
     {
+        // Persiste filtros actuales para navegaciaIn consistente
         Context::setContext("products_partialName", $this->partialName, true);
         Context::setContext("products_status", $this->status, true);
         Context::setContext("products_categoriaId", $this->categoriaId, true);
@@ -88,8 +105,12 @@ class Products extends PrivateController
         Context::setContext("products_itemsPerPage", $this->itemsPerPage, true);
     }
 
+    // =============================
+    // SETPARAMSTODATAVIEW
+    // =============================
     private function setParamsToDataView(): void
     {
+        // Prepara variables de vista y paginacion
         $this->viewData["partialName"] = $this->partialName;
         $this->viewData["status"] = $this->status;
         $this->viewData["categoriaId"] = $this->categoriaId;

@@ -2,6 +2,8 @@
 session_start();
 require_once 'db.php';
 
+// Procesa el pago simulado legacy, registra transaccion y descuenta stock en products
+
 if (!isset($_SESSION['cart']) || empty($_SESSION['cart'])) {
     header("Location: carrito.php");
     exit;

@@ -1,14 +1,23 @@
 <?php
 require_once 'models/Producto.php';
 
+// Orquesta filtros del catalogo publico y prepara datos para la vista legacy
 class ProductoController {
     private $modelo;
 
+    // =============================
+    // __CONSTRUCT
+    // =============================
     public function __construct($db) {
+        // Inicializa modelo del catalogo con conexion activa
         $this->modelo = new Producto($db);
     }
 
+    // =============================
+    // CATALOGO
+    // =============================
     public function catalogo() {
+        // Aplica filtros del catalogo y entrega datos a la vista
         if (session_status() === PHP_SESSION_NONE) {
             session_start();
         }
@@ -16,7 +25,7 @@ class ProductoController {
         $search = isset($_GET['q']) ? trim($_GET['q']) : '';
         $categoria = isset($_GET['categoria']) ? trim($_GET['categoria']) : '';
 
-        // Obtener productos según filtros
+        // Obtener productos segaUn filtros
         if (!empty($search) && !empty($categoria)) {
             $resultado = $this->modelo->buscarYCategoria($search, $categoria);
         } elseif (!empty($search)) {
@@ -42,7 +51,7 @@ class ProductoController {
             }
         }
 
-        // Variables de sesión para mostrar en HTML
+        // Variables de sesion para mostrar en HTML
         $isLogged = isset($_SESSION['login']) && $_SESSION['login']['isLogged'];
         $userName = $_SESSION['userName'] ?? '';
         $userEmail = $_SESSION['userEmail'] ?? '';

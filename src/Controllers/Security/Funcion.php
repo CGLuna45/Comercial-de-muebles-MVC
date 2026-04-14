@@ -8,6 +8,7 @@ use Dao\Security\Funciones as DaoFunciones;
 use Utilities\Site;
 use Utilities\Validators;
 
+// CRUD de una funcion/permiso del sistema
 class Funcion extends PrivateController
 {
     private $viewData = [];
@@ -27,9 +28,13 @@ class Funcion extends PrivateController
         "fntyp" => "FNC"
     ];
 
+    // =============================
+    // RUN
+    // =============================
     public function run(): void
     {
         try {
+            // Controla ciclo CRUD de una funcion de seguridad
             $this->getData();
             if ($this->isPostBack() && $this->validateData()) {
                 $this->handlePost();
@@ -44,9 +49,13 @@ class Funcion extends PrivateController
         }
     }
 
+    // =============================
+    // GETDATA
+    // =============================
     private function getData(): void
     {
         $this->mode = $_GET["mode"] ?? "NOF";
+        // Carga datos base segaUn modo y codigo solicitado
         if (!isset($this->modeDescriptions[$this->mode])) {
             throw new \Exception("Modo inválido");
         }
@@ -62,9 +71,13 @@ class Funcion extends PrivateController
         }
     }
 
+    // =============================
+    // VALIDATEDATA
+    // =============================
     private function validateData(): bool
     {
         $errors = [];
+        // Valida campos requeridos del formulario
         $this->funcion["fncod"] = trim($_POST["fncod"] ?? "");
         $this->funcion["fndsc"] = trim($_POST["fndsc"] ?? "");
         $this->funcion["fnest"] = $_POST["fnest"] ?? "ACT";
@@ -94,9 +107,13 @@ class Funcion extends PrivateController
         return true;
     }
 
+    // =============================
+    // HANDLEPOST
+    // =============================
     private function handlePost(): void
     {
         switch ($this->mode) {
+            // Ejecuta la operacion correspondiente al modo actual
             case "INS":
                 DaoFunciones::insertFuncion(
                     $this->funcion["fncod"],
@@ -122,9 +139,13 @@ class Funcion extends PrivateController
         }
     }
 
+    // =============================
+    // SETVIEWDATA
+    // =============================
     private function setViewData(): void
     {
         $this->viewData["FormTitle"] = sprintf($this->modeDescriptions[$this->mode], $this->funcion["fncod"]);
+        // Prepara datos para renderizar formulario
         $this->viewData["readonly"] = $this->readonly;
         $this->viewData["showCommitBtn"] = $this->showCommitBtn;
 

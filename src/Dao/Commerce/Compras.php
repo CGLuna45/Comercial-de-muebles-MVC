@@ -7,12 +7,16 @@ use Dao\Products\Products as ProductsDao;
 
 class Compras extends Table
 {
+    // =============================
+    // GETPURCHASES
+    // =============================
     public static function getPurchases(
         string $partial = "",
         string $status = "",
         int $page = 0,
         int $itemsPerPage = 10
     ): array {
+        // Obtiene ventas por producto con filtros y total vendido
         ProductsDao::syncLegacyProducts();
 
         $sql = "SELECT

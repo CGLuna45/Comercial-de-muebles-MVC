@@ -6,8 +6,12 @@ use Controllers\PublicController;
 
 class Accept extends PublicController
 {
+    // =============================
+    // RUN
+    // =============================
     public function run(): void
     {
+        // Captura la orden aprobada en PayPal y persiste la transaccion
         if (!\Utilities\Security::isLogged()) {
             \Utilities\Site::redirectTo("index.php?page=Sec_Login");
         }
@@ -163,8 +167,12 @@ class Accept extends PublicController
         \Views\Renderer::render("paypal/accept", $dataview);
     }
 
+    // =============================
+    // ENSUREPRODUCTRECORD
+    // =============================
     private function ensureProductRecord(\PDO $conn, array $item): void
     {
+        // Garantiza que el producto exista en products antes del detalle
         $productId = intval($item["id"]);
         $this->ensureCategoryRecord($conn);
         $stmtCheck = $conn->prepare("SELECT COUNT(*) AS total FROM products WHERE productId = :productId");
@@ -191,8 +199,12 @@ class Accept extends PublicController
         ));
     }
 
+    // =============================
+    // ENSURECATEGORYRECORD
+    // =============================
     private function ensureCategoryRecord(\PDO $conn): void
     {
+        // Crea categoria base solo si no existe en la base
         $stmtCheck = $conn->prepare("SELECT COUNT(*) FROM categorias WHERE categoriaId = 1");
         $stmtCheck->execute();
         if (intval($stmtCheck->fetchColumn() ?? 0) > 0) {

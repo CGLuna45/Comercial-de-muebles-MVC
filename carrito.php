@@ -2,7 +2,9 @@
 session_start();
 require_once 'db.php';
 
-// Variables de sesión para mostrar en HTML
+// Pagina de carrito: valida disponibilidad actual y mantiene el carrito sincronizado con stock real
+
+// Variables de sesion para mostrar en HTML
 $isLogged = isset($_SESSION['login']) && $_SESSION['login']['isLogged'];
 $userName = $_SESSION['userName'] ?? '';
 $userEmail = $_SESSION['userEmail'] ?? '';
@@ -14,6 +16,7 @@ if (!isset($_SESSION['cart'])) {
 
 $cartSyncMessages = [];
 if (!empty($_SESSION['cart'])) {
+    // Limpia productos inactivos/sin stock y ajusta cantidades fuera de rango
     foreach ($_SESSION['cart'] as $sessionKey => &$item) {
         $productId = intval($item['id'] ?? $sessionKey);
         if ($productId <= 0) {
