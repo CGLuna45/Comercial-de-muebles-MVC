@@ -14,12 +14,24 @@ class Security {
     }
     public static function logout()
     {
+        if (isset($_SESSION["login"]["userId"])) {
+            DaoSecurity::clearActiveSessionToken(intval($_SESSION["login"]["userId"]));
+        }
+
         unset($_SESSION["login"]);
         unset($_SESSION["userName"]);
         unset($_SESSION["userEmail"]);
+        unset($_SESSION["sessionToken"]);
     }
     public static function login($userId, $userName, $userEmail)
     {
+        if (session_status() === PHP_SESSION_ACTIVE) {
+            session_regenerate_id(true);
+        }
+
+        $sessionToken = bin2hex(random_bytes(32));
+        DaoSecurity::setActiveSessionToken($userId, $sessionToken);
+
         $_SESSION["login"] = array(
             "isLogged" => true,
             "userId" => $userId,
@@ -28,10 +40,28 @@ class Security {
         );
         $_SESSION["userName"] = $userName;
         $_SESSION["userEmail"] = $userEmail;
+        $_SESSION["sessionToken"] = $sessionToken;
     }
     public static function isLogged():bool
     {
-        return isset($_SESSION["login"]) && $_SESSION["login"]["isLogged"];
+        if (!(isset($_SESSION["login"]) && $_SESSION["login"]["isLogged"])) {
+            return false;
+        }
+
+        $userId = intval($_SESSION["login"]["userId"] ?? 0);
+        $sessionToken = strval($_SESSION["sessionToken"] ?? "");
+        if ($userId <= 0 || $sessionToken === "") {
+            self::logout();
+            return false;
+        }
+
+        $activeToken = strval(DaoSecurity::getActiveSessionToken($userId));
+        if ($activeToken === "" || !hash_equals($activeToken, $sessionToken)) {
+            self::logout();
+            return false;
+        }
+
+        return true;
     }
     public static function getUser()
     {
