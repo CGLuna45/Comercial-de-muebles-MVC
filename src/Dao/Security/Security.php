@@ -31,12 +31,12 @@ class Security extends \Dao\Table
             $sqlstr = "SELECT * FROM usuario;";
         } else {
             //TODO: Terminar consultas FACET
-            if ($page = -1 and $items = 0) {
-                $sqlstr = sprintf("SELECT * FROM usuarios %s;", $filter);
+            if ($page == -1 and $items == 0) {
+                $sqlstr = sprintf("SELECT * FROM usuario %s;", $filter);
             } else {
                 $offset = ($page - 1 * $items);
                 $sqlstr = sprintf(
-                    "SELECT * FROM usuarios %s limit %d, %d;",
+                    "SELECT * FROM usuario %s limit %d, %d;",
                     $filter,
                     $offset,
                     $items
@@ -89,6 +89,25 @@ class Security extends \Dao\Table
         $params = array("useremail" => $email);
 
         return self::obtenerUnRegistro($sqlstr, $params);
+    }
+
+    static public function getUsuarioById($usercod)
+    {
+        $sqlstr = "SELECT * from `usuario` where `usercod` = :usercod ;";
+        $params = array("usercod" => $usercod);
+
+        return self::obtenerUnRegistro($sqlstr, $params);
+    }
+
+    static public function updateUsuarioNombre($usercod, $username)
+    {
+        $sqlstr = "UPDATE `usuario` SET `username` = :username WHERE `usercod` = :usercod;";
+        $params = array(
+            "username" => $username,
+            "usercod" => $usercod
+        );
+
+        return self::executeNonQuery($sqlstr, $params);
     }
 
     static private function _saltPassword($password)
