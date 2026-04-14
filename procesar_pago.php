@@ -22,25 +22,23 @@ $total = $subtotal + $isv;
 /* =========================
    2. Obtener o crear usuario
 ========================= */
-$usuarioId = 0;
+$usuarioId = intval($_SESSION['login']['userId'] ?? 0);
 
-$sqlUsuario = "SELECT usuarioId FROM usuarios ORDER BY usuarioId ASC LIMIT 1";
-$resUsuario = $db->query($sqlUsuario);
-
-if ($resUsuario && $resUsuario->num_rows > 0) {
-    $filaUsuario = $resUsuario->fetch_assoc();
-    $usuarioId = $filaUsuario['usuarioId'];
-} else {
+if ($usuarioId <= 0) {
     $nombreDemo = "Usuario Demo";
     $emailDemo = "demo@cedrika.com";
     $passDemo = password_hash("123456", PASSWORD_DEFAULT);
+    $fechaDemo = date("Y-m-d H:i:s");
+    $passExpDemo = date("Y-m-d H:i:s", strtotime("+90 days"));
     $statusDemo = "ACT";
+    $actCodDemo = hash("sha256", $emailDemo . time());
+    $tipoDemo = "NOR";
 
-    $sqlInsertUsuario = "INSERT INTO usuarios (usuarioNombre, usuarioEmail, usuarioPass, usuarioStatus)
-                         VALUES (?, ?, ?, ?)";
+    $sqlInsertUsuario = "INSERT INTO usuario (username, useremail, userpswd, userfching, userpswdest, userpswdexp, userest, useractcod, userpswdchg, usertipo)
+                         VALUES (?, ?, ?, ?, 'ACT', ?, ?, ?, ?, ?)";
 
     $stmtInsertUsuario = $db->prepare($sqlInsertUsuario);
-    $stmtInsertUsuario->bind_param("ssss", $nombreDemo, $emailDemo, $passDemo, $statusDemo);
+    $stmtInsertUsuario->bind_param("sssssssss", $nombreDemo, $emailDemo, $passDemo, $fechaDemo, $passExpDemo, $statusDemo, $actCodDemo, $fechaDemo, $tipoDemo);
 
     if (!$stmtInsertUsuario->execute()) {
         die("Error al crear usuario demo: " . $stmtInsertUsuario->error);
