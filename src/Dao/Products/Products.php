@@ -6,6 +6,125 @@ use Dao\Table;
 
 class Products extends Table
 {
+    private static function normalizeProductRow(?array $product): ?array
+    {
+        if (!$product) {
+            return null;
+        }
+
+        if (isset($product['productId'])) {
+            return $product;
+        }
+
+        return [
+            'productId' => intval($product['id'] ?? 0),
+            'categoriaId' => intval($product['categoriaId'] ?? 0),
+            'productName' => strval($product['productName'] ?? ($product['nombre'] ?? '')),
+            'productDescription' => strval($product['productDescription'] ?? ''),
+            'productPrice' => floatval($product['productPrice'] ?? ($product['precio'] ?? 0)),
+            'productStock' => intval($product['productStock'] ?? ($product['stock'] ?? 0)),
+            'productImgUrl' => strval($product['productImgUrl'] ?? ($product['imagen'] ?? '')),
+            'productStatus' => strval($product['productStatus'] ?? 'ACT'),
+        ];
+    }
+
+    private static function ensureFallbackCategoryId(): int
+    {
+        $category = self::obtenerUnRegistro(
+            "SELECT categoriaId FROM categorias WHERE categoriaStatus = 'ACT' ORDER BY categoriaId ASC LIMIT 1",
+            []
+        );
+
+        if (!empty($category["categoriaId"])) {
+            return intval($category["categoriaId"]);
+        }
+
+        self::executeNonQuery(
+            "INSERT INTO categorias (categoriaId, categoriaNombre, categoriaDescripcion, categoriaStatus)
+             VALUES (1, 'General', 'Categoria general', 'ACT')",
+            []
+        );
+
+        return 1;
+    }
+
+    private static function ensureLegacyCategoryRecords(): void
+    {
+        $sqlstr = "INSERT INTO categorias (categoriaNombre, categoriaDescripcion, categoriaStatus)
+                   SELECT DISTINCT
+                        p.categoria,
+                        CONCAT('Categoria importada: ', p.categoria),
+                        'ACT'
+                   FROM productos p
+                   LEFT JOIN categorias c
+                     ON c.categoriaNombre = p.categoria
+                    AND c.categoriaStatus = 'ACT'
+                   WHERE p.categoria IS NOT NULL
+                     AND TRIM(p.categoria) <> ''
+                     AND c.categoriaId IS NULL";
+
+        self::executeNonQuery($sqlstr, []);
+    }
+
+    public static function syncLegacyProducts(): void
+    {
+        self::ensureLegacyCategoryRecords();
+        $fallbackCategoryId = self::ensureFallbackCategoryId();
+
+                // Keep category aligned with legacy source without overriding stock adjustments.
+                $updateCategorySql = "UPDATE products p
+                                                            INNER JOIN productos lp
+                                                                ON lp.id = p.productId
+                                                            INNER JOIN categorias c
+                                                                ON c.categoriaNombre = lp.categoria
+                                                             AND c.categoriaStatus = 'ACT'
+                                                            SET p.categoriaId = c.categoriaId
+                                                            WHERE p.categoriaId <> c.categoriaId";
+                self::executeNonQuery($updateCategorySql, []);
+
+            // Keep status consistent with current stock levels.
+            $syncStatusSql = "UPDATE products
+                      SET productStatus = CASE WHEN productStock > 0 THEN 'ACT' ELSE 'INA' END
+                      WHERE productStatus <> CASE WHEN productStock > 0 THEN 'ACT' ELSE 'INA' END";
+            self::executeNonQuery($syncStatusSql, []);
+
+        $sqlstr = "INSERT INTO products (
+                        productId,
+                        categoriaId,
+                        productName,
+                        productDescription,
+                        productPrice,
+                        productStock,
+                        productImgUrl,
+                        productStatus
+                    )
+                    SELECT
+                        p.id,
+                        COALESCE(
+                            (
+                                SELECT c.categoriaId
+                                FROM categorias c
+                                WHERE c.categoriaNombre = p.categoria
+                                  AND c.categoriaStatus = 'ACT'
+                                ORDER BY c.categoriaId ASC
+                                LIMIT 1
+                            ),
+                            :fallbackCategoryId
+                        ) AS categoriaId,
+                        p.nombre AS productName,
+                        CONCAT(p.nombre, ' - Catalogo CEDRIKA') AS productDescription,
+                        p.precio AS productPrice,
+                        p.stock AS productStock,
+                        p.imagen AS productImgUrl,
+                        CASE WHEN p.stock > 0 THEN 'ACT' ELSE 'INA' END AS productStatus
+                    FROM productos p
+                    LEFT JOIN products pr
+                        ON pr.productId = p.id
+                    WHERE pr.productId IS NULL";
+
+        self::executeNonQuery($sqlstr, ["fallbackCategoryId" => $fallbackCategoryId]);
+    }
+
     public static function getProducts(
         string $partialName = "",
         string $status = "",
@@ -15,6 +134,8 @@ class Products extends Table
         int $itemsPerPage = 10,
         int $categoriaId = 0
     ) {
+        self::syncLegacyProducts();
+
         $legacyCount = self::obtenerUnRegistro("SELECT COUNT(*) AS count FROM products", [])["count"] ?? 0;
 
         if ((int)$legacyCount === 0) {
@@ -127,17 +248,32 @@ class Products extends Table
 
     public static function getProductById(int $productId)
     {
-        $sqlstr = "SELECT * FROM productos WHERE id = :productId LIMIT 1";
+        $sqlstr = "SELECT productId, categoriaId, productName, productDescription, productPrice, productStock, productImgUrl, productStatus
+                   FROM products
+                   WHERE productId = :productId
+                   LIMIT 1";
         $params = ["productId" => $productId];
-        return self::obtenerUnRegistro($sqlstr, $params);
+        $product = self::obtenerUnRegistro($sqlstr, $params);
+
+        if ($product) {
+            return $product;
+        }
+
+        $sqlstr = "SELECT id, 0 AS categoriaId, nombre, '' AS productDescription, precio, stock, imagen, 'ACT' AS productStatus
+                   FROM productos
+                   WHERE id = :productId
+                   LIMIT 1";
+        $legacyProduct = self::obtenerUnRegistro($sqlstr, $params);
+        return self::normalizeProductRow($legacyProduct);
     }
 
     public static function decrementProductStock(int $productId, int $quantity)
     {
-        $sqlstr = "UPDATE productos
-            SET stock = stock - :quantity
-            WHERE id = :productId
-              AND stock >= :quantity";
+        $sqlstr = "UPDATE products
+            SET productStock = productStock - :quantity,
+                productStatus = CASE WHEN (productStock - :quantity) > 0 THEN 'ACT' ELSE 'INA' END
+            WHERE productId = :productId
+              AND productStock >= :quantity";
         $params = [
             "productId" => $productId,
             "quantity" => $quantity
@@ -154,14 +290,14 @@ class Products extends Table
         string $productImgUrl,
         string $productStatus
     ) {
-        $sqlstr = "INSERT INTO products (categoriaId, productName, productDescription, productPrice, productImgUrl, productStatus) VALUES (:categoriaId, :productName, :productDescription, :productPrice, :productImgUrl, :productStatus)";
+        $sqlstr = "INSERT INTO products (categoriaId, productName, productDescription, productPrice, productImgUrl, productStatus)
+                   VALUES (:categoriaId, :productName, :productDescription, :productPrice, :productImgUrl, 'INA')";
         $params = [
             "categoriaId" => $categoriaId,
             "productName" => $productName,
             "productDescription" => $productDescription,
             "productPrice" => $productPrice,
-            "productImgUrl" => $productImgUrl,
-            "productStatus" => $productStatus
+            "productImgUrl" => $productImgUrl
         ];
         return self::executeNonQuery($sqlstr, $params);
     }
@@ -175,16 +311,36 @@ class Products extends Table
         string $productImgUrl,
         string $productStatus
     ) {
-        $sqlstr = "UPDATE products SET categoriaId = :categoriaId, productName = :productName, productDescription = :productDescription, productPrice = :productPrice, productImgUrl = :productImgUrl, productStatus = :productStatus WHERE productId = :productId";
+        $sqlstr = "UPDATE products
+                   SET categoriaId = :categoriaId,
+                       productName = :productName,
+                       productDescription = :productDescription,
+                       productPrice = :productPrice,
+                       productImgUrl = :productImgUrl,
+                       productStatus = CASE WHEN productStock > 0 THEN 'ACT' ELSE 'INA' END
+                   WHERE productId = :productId";
         $params = [
             "productId" => $productId,
             "categoriaId" => $categoriaId,
             "productName" => $productName,
             "productDescription" => $productDescription,
             "productPrice" => $productPrice,
-            "productImgUrl" => $productImgUrl,
-            "productStatus" => $productStatus
+            "productImgUrl" => $productImgUrl
         ];
+        return self::executeNonQuery($sqlstr, $params);
+    }
+
+    public static function updateProductStock(int $productId, int $productStock)
+    {
+        $sqlstr = "UPDATE products
+                   SET productStock = :productStock,
+                       productStatus = CASE WHEN :productStock > 0 THEN 'ACT' ELSE 'INA' END
+                   WHERE productId = :productId";
+        $params = [
+            "productId" => $productId,
+            "productStock" => $productStock
+        ];
+
         return self::executeNonQuery($sqlstr, $params);
     }
 

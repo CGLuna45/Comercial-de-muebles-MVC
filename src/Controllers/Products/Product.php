@@ -81,6 +81,10 @@ class Product extends PrivateController
         $this->product["productImgUrl"] = strval($_POST["productImgUrl"] ?? "");
         $this->product["productStatus"] = strval($_POST["productStatus"] ?? "");
 
+        if ($this->mode === "DEL") {
+            return $this->product["productId"] > 0;
+        }
+
         if (Validators::IsEmpty($this->product["productName"])) {
             $errors["productName_error"] = "El nombre del producto es requerido";
         }
@@ -176,15 +180,18 @@ class Product extends PrivateController
     {
         $this->viewData["mode"] = $this->mode;
         $this->viewData["product_xss_token"] = $this->product_xss_token;
+        $productId = intval($this->product["productId"] ?? 0);
+        $productName = strval($this->product["productName"] ?? "");
         $this->viewData["FormTitle"] = sprintf(
             $this->modeDescriptions[$this->mode],
-            $this->product["productId"],
-            $this->product["productName"]
+            $productId,
+            $productName
         );
         $this->viewData["showCommitBtn"] = $this->showCommitBtn;
         $this->viewData["readonly"] = $this->readonly;
 
-        $productStatusKey = "productStatus_" . strtolower($this->product["productStatus"]);
+        $productStatus = strval($this->product["productStatus"] ?? "ACT");
+        $productStatusKey = "productStatus_" . strtolower($productStatus);
         $this->product[$productStatusKey] = "selected";
 
         $productoCategoria = $this->product["categoriaId"] ?? 0;
