@@ -46,6 +46,7 @@
     .nav-right a { text-decoration: none; color: var(--cedro); font-weight: 700; font-size: 0.95rem; transition: 0.3s; }
     .nav-right a:hover { color: var(--dorado); }
     .username-label { color: var(--cedro); font-weight: 700; font-size: 0.95rem; }
+    .profile-link { display: inline-flex; align-items: center; gap: 0.35rem; }
     .inline-icon {
       width: 1rem;
       height: 1rem;
@@ -127,7 +128,7 @@
     </a>
     <div class="nav-right">
       {{with login}}
-      <span class="username-label"><svg class="inline-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 12a4 4 0 1 0-4-4 4 4 0 0 0 4 4zm0 2c-4.42 0-8 2.24-8 5v1h16v-1c0-2.76-3.58-5-8-5z"/></svg> {{userName}}</span>
+      <a href="index.php?page=Security_Perfil" class="username-label profile-link"><svg class="inline-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 12a4 4 0 1 0-4-4 4 4 0 0 0 4 4zm0 2c-4.42 0-8 2.24-8 5v1h16v-1c0-2.76-3.58-5-8-5z"/></svg> Hola, {{userName}}</a>
       <a href="index.php?page=sec_logout"><svg class="inline-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M10 17v-3H3v-4h7V7l5 5-5 5zm3 4H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h8v2H5v14h8v2zm8-9h-7v-2h7V7l4 5-4 5v-3z"/></svg> Salir</a>
       {{endwith login}}
     </div>
@@ -149,7 +150,7 @@
   </main>
 
   <footer>
-    <p>© {{~CURRENT_YEAR}} CÉDRIKA | Panel Administrativo</p>
+    <p>© {{~CURRENT_YEAR}} CÉDRIKA | La Ceiba, Honduras</p>
   </footer>
 
 {{foreach EndScripts}}

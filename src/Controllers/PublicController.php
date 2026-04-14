@@ -37,6 +37,7 @@ abstract class PublicController implements IController
             \Utilities\Context::setContext("login", $userSession);
             \Utilities\Context::setContext("userName", $userSession["userName"]);
             \Utilities\Context::setContext("userEmail", $userSession["userEmail"]);
+                \Utilities\Context::setContext("isAdmin", \Utilities\Security::isInRol(\Utilities\Security::getUserId(), 1));
             
             $layoutFile = \Utilities\Context::getContextByKey("PRIVATE_LAYOUT");
             if ($layoutFile !== "") {

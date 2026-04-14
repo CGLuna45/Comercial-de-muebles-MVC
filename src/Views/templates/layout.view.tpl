@@ -170,7 +170,7 @@
       <a href="catalogo.php">Catálogo</a>
       <a href="carrito.php">🛒 Carrito {{foreach CartCount}}<span class="badge">{{this}}</span>{{endfor CartCount}}</a>
       {{if login}}
-      <span style="color: var(--cedro); font-weight:700;">Hola, {{userName}}</span>
+      <a href="index.php?page=Security_Perfil" style="color: var(--cedro); font-weight:700; text-decoration:none;">Hola, {{userName}}</a>
       <a href="index.php?page=Sec_Logout">Cerrar Sesión</a>
       {{else}}
       <a href="index.php?page=Sec_Login"><i class="fas fa-sign-in-alt"></i>&nbsp;Iniciar Sesión</a>
