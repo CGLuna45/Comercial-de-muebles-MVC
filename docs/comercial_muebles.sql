@@ -535,7 +535,7 @@ INSERT INTO `funciones` (`funcionId`, `funcionNombre`, `funcionDescripcion`, `fu
 (4, 'Menu_Purchases', 'Acceso al menú de compras', 'ACT');
 
 INSERT INTO `usuario` (`usercod`, `useremail`, `username`, `userpswd`, `userfching`, `userpswdest`, `userpswdexp`, `userest`, `useractcod`, `userpswdchg`, `usertipo`) VALUES
-(1, 'admincerika@gmail.com', 'Administrador CÉDRIKA', '$2y$10$qya6wm.UmcPdIVPem7s4TugP9UVDaB9L6skp3oM0E30M3D1jImGRS', NOW(), 'ACT', DATE_ADD(NOW(), INTERVAL 3650 DAY), 'ACT', SHA2('admincerika@gmail.com', 256), NOW(), 'ADM');
+(1, 'admincerika@gmail.com', 'Administrador CEDRIKA', '$2y$10$2bj3XCZBvURKI7JMe0c/bOfgMWjDHfLRuOR6Ag/2iDuZK6yKnldta', NOW(), 'ACT', DATE_ADD(NOW(), INTERVAL 3650 DAY), 'ACT', SHA2('admincerika@gmail.com', 256), NOW(), 'ADM');
 
 INSERT INTO `roles_usuarios` (`rolUsuarioId`, `usuarioId`, `rolId`, `ruStatus`, `ruFechaInicio`, `ruFechaFin`) VALUES
 (1, 1, 1, 'ACT', NOW(), '2099-12-31 23:59:59');
