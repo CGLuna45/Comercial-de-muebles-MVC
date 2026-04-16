@@ -4,6 +4,25 @@ namespace Dao\Cart;
 
 class Cart extends \Dao\Table
 {
+    private static function tableExists(string $tableName): bool
+    {
+        static $cache = [];
+
+        if (isset($cache[$tableName])) {
+            return $cache[$tableName];
+        }
+
+        $sql = "SELECT COUNT(*) AS total
+                FROM information_schema.tables
+                WHERE table_schema = DATABASE()
+                  AND table_name = :tableName";
+
+        $row = self::obtenerUnRegistro($sql, ["tableName" => $tableName]);
+        $cache[$tableName] = intval($row["total"] ?? 0) > 0;
+
+        return $cache[$tableName];
+    }
+
     public static function getProductosDisponibles()
     {
         $sqlAllProductosActivos = "SELECT * from products where productStatus in ('ACT');";
@@ -11,22 +30,28 @@ class Cart extends \Dao\Table
 
         //Sacar el stock de productos con carretilla autorizada
         $deltaAutorizada = \Utilities\Cart\CartFns::getAuthTimeDelta();
-        $sqlCarretillaAutorizada = "select productId, sum(crrctd) as reserved
-            from carretilla where TIME_TO_SEC(TIMEDIFF(now(), crrfching)) <= :delta
-            group by productId;";
-        $prodsCarretillaAutorizada = self::obtenerRegistros(
-            $sqlCarretillaAutorizada,
-            array("delta" => $deltaAutorizada)
-        );
+        $prodsCarretillaAutorizada = [];
+        if (self::tableExists('carretilla')) {
+            $sqlCarretillaAutorizada = "select productId, sum(crrctd) as reserved
+                from carretilla where TIME_TO_SEC(TIMEDIFF(now(), crrfching)) <= :delta
+                group by productId;";
+            $prodsCarretillaAutorizada = self::obtenerRegistros(
+                $sqlCarretillaAutorizada,
+                array("delta" => $deltaAutorizada)
+            );
+        }
         //Sacar el stock de productos con carretilla no autorizada
         $deltaNAutorizada = \Utilities\Cart\CartFns::getUnAuthTimeDelta();
-        $sqlCarretillaNAutorizada = "select productId, sum(crrctd) as reserved
-            from carretillaanom where TIME_TO_SEC(TIMEDIFF(now(), crrfching)) <= :delta
-            group by productId;";
-        $prodsCarretillaNAutorizada = self::obtenerRegistros(
-            $sqlCarretillaNAutorizada,
-            array("delta" => $deltaNAutorizada)
-        );
+        $prodsCarretillaNAutorizada = [];
+        if (self::tableExists('carretillaanom')) {
+            $sqlCarretillaNAutorizada = "select productId, sum(crrctd) as reserved
+                from carretillaanom where TIME_TO_SEC(TIMEDIFF(now(), crrfching)) <= :delta
+                group by productId;";
+            $prodsCarretillaNAutorizada = self::obtenerRegistros(
+                $sqlCarretillaNAutorizada,
+                array("delta" => $deltaNAutorizada)
+            );
+        }
         $productosCurados = array();
         foreach ($productosDisponibles as $producto) {
             if (!isset($productosCurados[$producto["productId"]])) {
@@ -56,22 +81,28 @@ class Cart extends \Dao\Table
 
         //Sacar el stock de productos con carretilla autorizada
         $deltaAutorizada = \Utilities\Cart\CartFns::getAuthTimeDelta();
-        $sqlCarretillaAutorizada = "select productId, sum(crrctd) as reserved
-            from carretilla where productId=:productId and TIME_TO_SEC(TIMEDIFF(now(), crrfching)) <= :delta
-            group by productId;";
-        $prodsCarretillaAutorizada = self::obtenerRegistros(
-            $sqlCarretillaAutorizada,
-            array("productId" => $productId, "delta" => $deltaAutorizada)
-        );
+        $prodsCarretillaAutorizada = [];
+        if (self::tableExists('carretilla')) {
+            $sqlCarretillaAutorizada = "select productId, sum(crrctd) as reserved
+                from carretilla where productId=:productId and TIME_TO_SEC(TIMEDIFF(now(), crrfching)) <= :delta
+                group by productId;";
+            $prodsCarretillaAutorizada = self::obtenerRegistros(
+                $sqlCarretillaAutorizada,
+                array("productId" => $productId, "delta" => $deltaAutorizada)
+            );
+        }
         //Sacar el stock de productos con carretilla no autorizada
         $deltaNAutorizada = \Utilities\Cart\CartFns::getUnAuthTimeDelta();
-        $sqlCarretillaNAutorizada = "select productId, sum(crrctd) as reserved
-            from carretillaanom where productId = :productId and TIME_TO_SEC(TIMEDIFF(now(), crrfching)) <= :delta
-            group by productId;";
-        $prodsCarretillaNAutorizada = self::obtenerRegistros(
-            $sqlCarretillaNAutorizada,
-            array("productId" => $productId, "delta" => $deltaNAutorizada)
-        );
+        $prodsCarretillaNAutorizada = [];
+        if (self::tableExists('carretillaanom')) {
+            $sqlCarretillaNAutorizada = "select productId, sum(crrctd) as reserved
+                from carretillaanom where productId = :productId and TIME_TO_SEC(TIMEDIFF(now(), crrfching)) <= :delta
+                group by productId;";
+            $prodsCarretillaNAutorizada = self::obtenerRegistros(
+                $sqlCarretillaNAutorizada,
+                array("productId" => $productId, "delta" => $deltaNAutorizada)
+            );
+        }
         $productosCurados = array();
         foreach ($productosDisponibles as $producto) {
             if (!isset($productosCurados[$producto["productId"]])) {
