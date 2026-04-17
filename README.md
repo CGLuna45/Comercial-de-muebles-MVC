@@ -34,3 +34,7 @@ Administrador
 - Usuarios
 - Transacciones
 - Ventas de Productos
+
+Video De Youtube
+
+Enlace del Video: https://youtu.be/fdiUR1lTojs
